@@ -46,6 +46,9 @@ class HandoffTests(unittest.TestCase):
         self.dead_addr = self.start_backend(self.dead)
         self.live_addr = self.start_backend(self.live)
         self.pool._update_workers({"dead": WorkerInfo(self.dead_addr, "READY"), "live": WorkerInfo(self.live_addr, "READY")})
+        # Legacy handoff checks explicitly exercise the original two-slot profile.
+        for worker in self.pool._workers.values():
+            worker.max_outstanding_batches = 2
         self.addCleanup(self.cleanup)
 
     def start_backend(self, backend):

@@ -19,6 +19,7 @@ Usage:
 import asyncio
 import logging
 import hmac
+import threading
 import json
 import time
 from contextlib import asynccontextmanager
@@ -29,7 +30,7 @@ from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 from uuid import UUID
 
-from .metrics import QUEUE_DEPTH
+from .metrics import QUEUE_DEPTH, LOOP_HEALTHY, LOOP_AGE
 from fastapi import Request, Response
 from prometheus_client import (
     Counter,
@@ -45,6 +46,7 @@ from .config import config
 from .queue import TaskQueue
 from .scheduler import Scheduler
 from .task import Task
+from .sync_requests import SyncAdmissionMiddleware, wait_for_task
 from .worker import WorkerPool
 from system import task
 
@@ -90,7 +92,9 @@ async def lifespan(app: FastAPI):
     job_gateway = None
     if job_store is not None:
         job_gateway = JobGateway(job_store, _task_queue,
-            max_inflight=int(os.environ.get("SYNTHX_JOBS_MAX_INFLIGHT", "1")))
+            max_inflight=int(os.environ.get("SYNTHX_JOBS_MAX_INFLIGHT", "1")),
+            rpc_timeout_seconds=float(os.environ.get("SYNTHX_JOBS_RPC_TIMEOUT_SECONDS", "300")),
+            health_timeout_seconds=config.loop_health_timeout_seconds)
     if USE_GRPC:
         _worker_pool = GrpcWorkerPool(zk_hosts=os.environ.get("ZK_HOSTS", "localhost:2181"))
     else:
@@ -98,8 +102,14 @@ async def lifespan(app: FastAPI):
     _worker_pool.start()
 
     _scheduler = Scheduler(_task_queue, _worker_pool.submit)
+    for name, component in (("scheduler", _scheduler), ("gateway", job_gateway)):
+        if component is not None:
+            LOOP_HEALTHY.labels(loop=name).set_function(component.is_healthy)
+            LOOP_AGE.labels(loop=name).set_function(
+                lambda component=component: component.progress.snapshot()["last_cycle_age_seconds"] or 0.)
     _scheduler.start()
     if job_gateway is not None:
+        job_gateway.scheduler_healthy = _scheduler.is_healthy
         _job_gateway = job_gateway
         _job_gateway.start()
 
@@ -124,6 +134,7 @@ app = FastAPI(
 
 _deployment_gate = DeploymentGate()
 app.add_middleware(DeploymentMiddleware, gate=_deployment_gate)
+app.add_middleware(SyncAdmissionMiddleware)
 
 
 @app.get('/health/deployment')
@@ -187,13 +198,30 @@ async def record_metrics(request: Request, call_next):
         )
 
 
+_metrics_collection_lock = threading.Lock()
+
+
 @app.get("/metrics", include_in_schema=False)
 async def metrics():
-    """Expose the process-local Prometheus registry in text format."""
-    return Response(
-        content=generate_latest(),
-        headers={"Content-Type": CONTENT_TYPE_LATEST},
-    )
+    """Bound scraping without blocking the event loop or accumulating collectors."""
+    if not _metrics_collection_lock.acquire(blocking=False):
+        raise HTTPException(status_code=503, detail="metrics collection already in progress")
+
+    def collect():
+        try:
+            return generate_latest()
+        finally:
+            # A timed-out HTTP waiter cannot release a still-running collector.
+            _metrics_collection_lock.release()
+
+    collector = asyncio.create_task(asyncio.to_thread(collect))
+    # Retrieve errors even if the HTTP waiter times out or disconnects first.
+    collector.add_done_callback(lambda future: future.exception() if not future.cancelled() else None)
+    try:
+        content = await asyncio.wait_for(asyncio.shield(collector), timeout=.5)
+    except asyncio.TimeoutError:
+        raise HTTPException(status_code=503, detail="metrics collection timed out")
+    return Response(content=content, headers={"Content-Type": CONTENT_TYPE_LATEST})
 
 # ---------------------------------------------------------------------------
 # Request / response models
@@ -271,6 +299,15 @@ class TextTaskRequest(BaseModel):
     payload: dict[str, Any]
 
 
+def _discard_abandoned(task):
+    """Release waiting slots without cancelling other tasks sharing an active RPC."""
+    _task_queue.discard(task)
+    for owner in (_scheduler if '_scheduler' in globals() else None, _worker_pool):
+        discard = getattr(owner, 'discard_pending', None)
+        if discard is not None:
+            discard(task)
+
+
 @app.post("/text/tasks", dependencies=[Depends(require_jobs_auth)])
 async def text_task(body: TextTaskRequest, request: Request):
     """Schedule one read-only text stage; this endpoint is not a durable job."""
@@ -297,14 +334,7 @@ async def text_task(body: TextTaskRequest, request: Request):
         _task_queue.put(task, timeout=0)
     except Full:
         raise HTTPException(status_code=503, detail="task queue is full")
-    while task.status.value not in ("done", "failed"):
-        if await request.is_disconnected():
-            task.mark_failed("text caller disconnected", "cancelled")
-            raise HTTPException(status_code=499, detail="text caller disconnected")
-        if task.is_expired():
-            task.mark_failed("text stage deadline exceeded", "deadline_exceeded")
-            break
-        await asyncio.sleep(.05)
+    await wait_for_task(task, request, _discard_abandoned)
     if task.status.value == "failed":
         status = {"deadline_exceeded":504, "overloaded":503, "busy":503,
                   "transport_error":503, "invalid_spec":422, "cancelled":499}.get(task.error_code,502)
@@ -313,7 +343,7 @@ async def text_task(body: TextTaskRequest, request: Request):
 
 
 @app.post("/predict", response_model=PredictResponse)
-async def predict(request: PredictRequest):
+async def predict(request: PredictRequest, http_request: Request):
     """
     Submit an inference request and wait synchronously for the result.
 
@@ -330,11 +360,7 @@ async def predict(request: PredictRequest):
     except Full:
         raise HTTPException(status_code=503, detail="task queue is full")
 
-    # Poll for completion (workers signal via task.status)
-    while not task.is_expired():
-        if task.status.value in ("done", "failed"):
-            break
-        await asyncio.sleep(0.001)
+    await wait_for_task(task, http_request, _discard_abandoned)
 
     if task.is_expired():
         task.mark_failed(
@@ -397,7 +423,31 @@ async def status():
         "status": "running",
         "config": config.snapshot(),
         "queue": _task_queue.stats,
+        "runtime": runtime_snapshot(),
     }
+
+def runtime_snapshot():
+    """Read progress without acquiring dispatch, queue, or database work locks."""
+    loops = {}
+    for name, component in (("scheduler", globals().get("_scheduler")),
+                            ("gateway", _job_gateway)):
+        if component is None:
+            if name == "scheduler" or JOBS_ENABLED:
+                loops[name] = {"healthy": False, "last_cycle_age_seconds": None}
+            continue
+        loops[name] = component.progress.snapshot()
+        loops[name]["healthy"] = component.is_healthy()
+    return {"healthy": bool(loops) and all(item["healthy"] for item in loops.values()),
+            "loops": loops}
+
+
+@app.get("/health/runtime")
+async def runtime_health():
+    """Return 503 for stalled/stopped loops; lack of worker capacity is separate."""
+    from fastapi.responses import JSONResponse
+    snapshot = runtime_snapshot()
+    return JSONResponse(snapshot, status_code=200 if snapshot["healthy"] else 503)
+
 
 @app.get("/readyz")
 async def readiness():
@@ -406,6 +456,8 @@ async def readiness():
         raise HTTPException(status_code=503, detail="worker pool not initialized")
     if not USE_GRPC:
         raise HTTPException(status_code=503, detail="gRPC worker pool not enabled")
+    if not runtime_snapshot()["healthy"]:
+        raise HTTPException(status_code=503, detail="runtime loop progress unavailable")
     if not _worker_pool.has_workers():
         raise HTTPException(status_code=503, detail="no workers available")
     else:

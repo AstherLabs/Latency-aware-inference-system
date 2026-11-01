@@ -9,6 +9,7 @@ so the API server can return it to the caller.
 """
 
 import time
+import asyncio
 import uuid
 import threading
 from dataclasses import dataclass, field
@@ -37,7 +38,7 @@ class Task:
         error:         Error message; populated by the worker on failure.
         error_code:    Failure category used by the API to select an HTTP status.
         deadline:      API-process monotonic deadline; never sent as an absolute value.
-        retry_count:   Number of reserved retries, including a rejected handoff.
+        retry_count:   Accepted central retries; legacy handoff reserves before admission.
         start_time:    Unix timestamp when a worker began processing.
         end_time:      Unix timestamp when processing completed (success or fail).
     """
@@ -51,13 +52,46 @@ class Task:
     start_time: Optional[float] = None
     end_time: Optional[float] = None
     deadline: Optional[float] = None
+    rpc_timeout_seconds: Optional[float] = None
     retry_count: int = 0
+    retry_pending: bool = False
     _lock: Any = field(
         default_factory=threading.Lock,
         init=False,
         repr=False,
         compare=False,
     )
+
+    _waiters: list = field(default_factory=list, init=False, repr=False, compare=False)
+
+    async def wait_finished(self, timeout=None) -> None:
+        """Await a terminal state without polling; unregister on timeout or cancellation."""
+        loop = asyncio.get_running_loop()
+        future = loop.create_future()
+        entry = (loop, future)
+        with self._lock:
+            if self.status in (TaskStatus.DONE, TaskStatus.FAILED):
+                return
+            self._waiters.append(entry)
+        try:
+            await asyncio.wait_for(future, timeout)
+        finally:
+            with self._lock:
+                if entry in self._waiters:
+                    self._waiters.remove(entry)
+
+    @staticmethod
+    def _notify_waiters(waiters) -> None:
+        """Schedule loop-owned future updates outside the task state lock."""
+        def resolve(future):
+            if not future.done():
+                future.set_result(None)
+        for loop, future in waiters:
+            try:
+                loop.call_soon_threadsafe(resolve, future)
+            except RuntimeError:
+                # A caller's event loop may have closed during process shutdown.
+                pass
 
     @property
     def age_ms(self) -> float:
@@ -102,6 +136,8 @@ class Task:
             self.result = result
             self.end_time = time.time()
             self.status = TaskStatus.DONE
+            waiters, self._waiters = self._waiters, []
+        self._notify_waiters(waiters)
 
     def mark_failed(self, error: str, error_code: Optional[str] = None) -> None:
         """Publish an error atomically; preserve any existing terminal result."""
@@ -112,6 +148,8 @@ class Task:
             self.error_code = error_code
             self.end_time = time.time()
             self.status = TaskStatus.FAILED
+            waiters, self._waiters = self._waiters, []
+        self._notify_waiters(waiters)
 
     def to_dict(self) -> dict:
         """Build a task summary for inspection and experiment output."""
@@ -136,4 +174,27 @@ class Task:
             if self.is_expired() or self.retry_count >= 1:
                 return False
             self.retry_count += 1
+            return True
+
+    def prepare_retry(self, max_retries: int) -> bool:
+        """Return accepted work to central scheduling without spending an attempt."""
+        with self._lock:
+            if self.status in (TaskStatus.DONE, TaskStatus.FAILED) or self.is_expired():
+                return False
+            if self.retry_count >= max_retries:
+                return False
+            self.retry_pending = True
+            self.status = TaskStatus.PENDING
+            return True
+
+    def accept_retry(self, max_retries: int) -> bool:
+        """Consume retry budget only inside an accepting worker's capacity lock."""
+        with self._lock:
+            if self.status in (TaskStatus.DONE, TaskStatus.FAILED) or self.is_expired():
+                return False
+            if self.retry_pending:
+                if self.retry_count >= max_retries:
+                    return False
+                self.retry_count += 1
+                self.retry_pending = False
             return True

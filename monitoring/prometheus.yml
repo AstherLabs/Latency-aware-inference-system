@@ -1,7 +1,11 @@
 # Prometheus connects to the API using its Compose service name.
 global:
-  scrape_interval: 15s
+  scrape_interval: 5s
+  evaluation_interval: 5s
   scrape_timeout: 5s
+
+rule_files:
+  - /etc/prometheus/rules/runtime.yml
 
 scrape_configs:
   - job_name: inference-api

@@ -1,0 +1,11 @@
+{
+  "image": "inference-benchmark:bench-cb8d890b7301",
+  "image_id": "sha256:2bfd074f2c82f8f9800418c99927a0ca407825f073d66fd65aa0e6c5687eb2d3",
+  "defaults": {
+    "loop_timeout_seconds": 10,
+    "alert_for_seconds": 30,
+    "lease_seconds": 120,
+    "renew_interval_seconds": 30
+  },
+  "scope": "local disposable SQL, API subprocesses, fixture gRPC worker and real Prometheus"
+}

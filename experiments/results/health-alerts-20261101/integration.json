@@ -1,0 +1,16 @@
+{
+  "integrated_base": "e74dd95c715323153aad19dae1531e44ab11de4e",
+  "ci_tests_passed": 206,
+  "purpose": "Integrate prior measured runtime work with current v123/refinement routing and staging-first deployment.",
+  "historical_acceptance": "The report.json fault run predates this integration; source-sha256.json identifies that tested runtime. integrated-ci.log verifies this later integrated tree.",
+  "routing_regressions": [
+    "refinement uses shared backpressure dispatch",
+    "retired v122 kind rejected"
+  ],
+  "source_sha256": {
+    "system/api_server.py": "cee3c96cf7378c677cf5c12988d1df96b26e6b1d01205714f2be271cba02ec62",
+    "system/grpc_worker_pool.py": "652d2517494b8233f286646c24dc6b567fc74aeeb3b2ec5bc00629c77c169dfc",
+    "system/worker_text.py": "19b5aa3b20e2c1877d8055a3d7c54c57060e3c4bd425f662523a9e742ec5353e",
+    "deploy/ci/compose.platform.yml": "e8f7859c0c45be21ef750c5c5245eec5041b615dc9d73754ec0dd92adb11aeaf"
+  }
+}

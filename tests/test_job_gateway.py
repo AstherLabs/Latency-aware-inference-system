@@ -207,6 +207,97 @@ class DurableGatewayTests(unittest.TestCase):
         with patch.object(api_server, "_job_gateway", gateway, create=True), patch.object(api_server, "_jobs_token", "service-test", create=True):
             asyncio.run(request())
 
+    def test_database_statement_wait_is_bounded(self):
+        from system.job_store import JobStore
+        store = JobStore(TEST_DSN, statement_timeout_seconds=.05)
+        started = time.monotonic()
+        with self.assertRaises(psycopg.errors.QueryCanceled):
+            with store._connection() as conn:
+                conn.execute("SELECT pg_sleep(.5)")
+        self.assertLess(time.monotonic() - started, 1)
+
+    def test_stalled_scheduler_waits_for_lease_expiry_before_recovery(self):
+        job = self.job()
+        queue, recovered = TaskQueue(2), TaskQueue(2)
+        healthy = [True]
+        gateway = self.gateway(queue, scheduler_healthy=lambda: healthy[0])
+        gateway.submit(job)
+        old_task = queue.get(timeout=0)
+        healthy[0] = False
+        gateway.poll()
+        self.assertEqual(old_task.error_code, "lease_lost")
+        recovery = self.gateway(recovered)
+        recovery.poll()
+        self.assertTrue(recovered.empty())
+        with psycopg.connect(TEST_DSN) as conn:
+            conn.execute("UPDATE synthx.inference_jobs SET lease_until=now()-interval '1 second' WHERE job_id=%s", (job,))
+        recovery.poll()
+        new_task = recovered.get(timeout=0)
+        self.assertNotEqual(old_task.input_data["attempt_id"], new_task.input_data["attempt_id"])
+        new_task.mark_done({"recovered": True})
+        recovery.poll()
+        self.assertEqual(self.store.get(job)["result"], {"recovered": True})
+        old_task.mark_done({"stale": True})
+        gateway.poll()
+        self.assertEqual(self.store.get(job)["result"], {"recovered": True})
+
+    def test_attempt_rpc_timeout_retries_through_sql_on_another_worker(self):
+        import threading
+        from system import inference_pb2, inference_pb2_grpc
+        from system.grpc_worker_pool import GrpcWorkerPool
+        from system.scheduler import Scheduler
+        from system.config import config
+        job = self.job()
+        seen = []
+        class Backend(inference_pb2_grpc.WorkerServiceServicer):
+            def __init__(self, slow):
+                self.slow = slow
+            def ProcessBatch(self, request, context):
+                seen.append((self.slow, json.loads(request.tasks[0].input_json)["attempt_id"]))
+                if self.slow:
+                    while context.is_active():
+                        time.sleep(.005)
+                    return inference_pb2.BatchResponse()
+                return inference_pb2.BatchResponse(results=[inference_pb2.TaskResult(
+                    task_id=request.tasks[0].task_id, success=True,
+                    result_json=json.dumps({"recovered": True}))])
+        addresses = {}
+        for name, slow in (("first", True), ("second", False)):
+            server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
+            inference_pb2_grpc.add_WorkerServiceServicer_to_server(Backend(slow), server)
+            port = server.add_insecure_port("127.0.0.1:0")
+            server.start()
+            self.addCleanup(lambda server=server: server.stop(0).wait())
+            addresses[name] = f"127.0.0.1:{port}"
+        original = config.batch_size
+        config.update(batch_size=1)
+        self.addCleanup(lambda: config.update(batch_size=original))
+        with patch.dict(os.environ, {"STATIC_WORKERS": json.dumps(addresses)}):
+            pool = GrpcWorkerPool()
+            pool.start()
+        self.addCleanup(pool.stop)
+        queue = TaskQueue(2)
+        scheduler = Scheduler(queue, pool.submit)
+        scheduler.start()
+        self.addCleanup(scheduler.stop)
+        gateway = self.gateway(queue, rpc_timeout_seconds=.1, retry_seconds=.05,
+                               poll_interval=.01, scheduler_healthy=scheduler.is_healthy)
+        deadline = self.store.get(job)["deadline_at"]
+        gateway.start()
+        self.addCleanup(gateway.stop)
+        until = time.monotonic() + 5
+        while time.monotonic() < until:
+            row = self.store.get(job)
+            if row["status"] == "succeeded":
+                break
+            time.sleep(.02)
+        self.assertEqual(row["result"], {"recovered": True})
+        self.assertEqual(row["attempts"], 2)
+        self.assertEqual(row["deadline_at"], deadline)
+        self.assertEqual([item[0] for item in seen], [True, False])
+        self.assertNotEqual(seen[0][1], seen[1][1])
+        self.assertFalse(self.store.complete(job, seen[0][1], result={"stale": True}))
+
     def test_enabled_lifespan_runs_sql_queue_scheduler_grpc_and_completion(self):
         from system import api_server, inference_pb2, inference_pb2_grpc
         from system.grpc_worker_pool import GrpcWorkerPool

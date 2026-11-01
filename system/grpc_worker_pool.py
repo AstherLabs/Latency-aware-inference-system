@@ -14,12 +14,14 @@ import json
 import logging
 import os
 import threading
+import time
 from typing import Callable, Dict, List, Optional
 
 import grpc
 
 from . import inference_pb2, inference_pb2_grpc
 from .task import Task, TaskStatus
+from .config import config
 from .zookeeper_registry import WorkerDiscovery, WorkerInfo
 from .metrics import (
     RETRY_COMPLETIONS, RETRY_SUBMISSIONS, WORKER_COUNT,
@@ -38,14 +40,22 @@ class GrpcWorker:
     """
 
     def __init__(self, worker_id: str, address: str,
-                 retry_handler: Callable[[Task, str], bool]):
+                 retry_handler: Callable[[Task, str], bool], capacity_event=None):
         """Create a channel and start the serial dispatch thread for one remote worker."""
         self.worker_id = worker_id
         self.address = address
         self._retry_handler = retry_handler
+        self._capacity_event = capacity_event or threading.Event()
+        self.max_outstanding_batches = config.worker_max_outstanding_batches
+        self._unavailable = False
+        self._recover_after = 0.0
+        self._recovery_failures = 0
         self._channel = grpc.insecure_channel(address, options=[
             ("grpc.max_send_message_length", 16 * 1024 * 1024),
             ("grpc.max_receive_message_length", 16 * 1024 * 1024),
+            ('grpc.initial_reconnect_backoff_ms', 100),
+            ('grpc.min_reconnect_backoff_ms', 100),
+            ('grpc.max_reconnect_backoff_ms', 1000),
         ])
         self._stub = inference_pb2_grpc.WorkerServiceStub(self._channel)
         self._batch_queue: List[Batch] = []
@@ -61,7 +71,7 @@ class GrpcWorker:
         self._active_rpcs_metric = WORKER_ACTIVE_RPCS.labels(worker_id)
         self._state_metrics = {
             state: WORKER_ROUTING_STATE.labels(worker_id, state)
-            for state in ("READY", "DRAINING")
+            for state in ("READY", "DRAINING", "UNAVAILABLE")
         }
         self._metrics_removed = False
         self._queued_batches_metric.set(0)
@@ -79,17 +89,80 @@ class GrpcWorker:
                 task.mark_failed("worker unavailable or at capacity", "overloaded")
 
     def try_submit(self, batch: Batch) -> bool:
-        """Atomically accept a batch only when running and below two outstanding batches."""
+        """Reserve configured capacity and retry budget together before enqueueing."""
         with self._lock:
-            if self._stop.is_set() or self._routing_state != "READY":
+            if self._stop.is_set() or self._routing_state != "READY" or self._unavailable:
                 return False
             outstanding = self._processing + len(self._batch_queue)
-            if outstanding >= 2:
+            if outstanding >= self.max_outstanding_batches:
                 return False
-
+            live = []
+            for task in batch:
+                retry = task.retry_pending
+                if not task.accept_retry(config.max_task_retries):
+                    if task.is_expired():
+                        task.mark_failed('request deadline exceeded', 'deadline_exceeded')
+                    elif task.status not in (TaskStatus.DONE, TaskStatus.FAILED):
+                        task.mark_failed('retry budget exhausted', 'retry_exhausted')
+                    continue
+                if retry:
+                    RETRY_SUBMISSIONS.inc()
+                live.append(task)
+            if not live:
+                return True
+            batch = live
             self._batch_queue.append(batch)
             self._queued_batches_metric.set(len(self._batch_queue))
         self._has_work.set()
+        return True
+
+    def discard_pending(self, task):
+        """Remove queued work only; an active batch may serve other requests."""
+        with self._lock:
+            batches = [[item for item in batch if item is not task] for batch in self._batch_queue]
+            self._batch_queue = [batch for batch in batches if batch]
+            self._queued_batches_metric.set(len(self._batch_queue))
+        self._capacity_event.set()
+
+    def _mark_unavailable(self):
+        """Quarantine failed transport and return queued work without holding locks."""
+        with self._lock:
+            self._unavailable = True
+            self._recovery_failures += 1
+            self._recover_after = time.monotonic() + min(30, config.worker_recovery_backoff_seconds * 2 ** min(self._recovery_failures - 1, 5))
+            pending, self._batch_queue = self._batch_queue, []
+            self._queued_batches_metric.set(0)
+            self._update_state_metrics()
+        self._capacity_event.set()
+        for batch in pending:
+            for task in batch:
+                self._finish_or_retry(task, 'worker transport unavailable', True)
+
+    def _probe_recovery(self):
+        with self._lock:
+            if not self._unavailable:
+                return True
+            if self._stop.is_set() or time.monotonic() < self._recover_after:
+                return False
+        # Channel connectivity is a transport probe, not model execution readiness.
+        probe = None
+        try:
+            probe = grpc.channel_ready_future(self._channel)
+            probe.result(timeout=.2)
+        except (grpc.FutureTimeoutError, grpc.FutureCancelledError, ValueError):
+            if probe is not None:
+                probe.cancel()
+            with self._lock:
+                self._recovery_failures += 1
+                self._recover_after = time.monotonic() + min(30, config.worker_recovery_backoff_seconds * 2 ** min(self._recovery_failures - 1, 5))
+            return False
+        with self._lock:
+            if self._stop.is_set():
+                return False
+            self._unavailable = False
+            self._recovery_failures = 0
+            self._update_state_metrics()
+        self._capacity_event.set()
         return True
 
     def busy(self) -> bool:
@@ -105,6 +178,7 @@ class GrpcWorker:
                 self._stop.set()
                 self._update_state_metrics()
         self._has_work.set()
+        self._capacity_event.set()
 
     def stop(self, retry_pending: bool = False) -> None:
         """Cancel the active RPC and hand off queued tasks only during worker removal."""
@@ -165,6 +239,8 @@ class GrpcWorker:
         while not self._stop.is_set():
             self._has_work.wait(timeout=0.1)
             self._has_work.clear()
+            if not self._probe_recovery():
+                continue
             while True:
                 with self._lock:
                     if self._stop.is_set() or not self._batch_queue:
@@ -178,6 +254,7 @@ class GrpcWorker:
                 finally:
                     with self._lock:
                         self._processing = False
+                    self._capacity_event.set()
 
     def _process(self, batch: Batch) -> None:
         """Send live tasks with their budgets and reconcile results or eligible RPC failures."""
@@ -221,6 +298,10 @@ class GrpcWorker:
 
             requests.append(request)
         rpc_timeout = max(remaining_times) if remaining_times else 35.0
+        attempt_caps = [task.rpc_timeout_seconds for task in batch
+                        if task.rpc_timeout_seconds is not None]
+        if attempt_caps:
+            rpc_timeout = min(rpc_timeout, min(attempt_caps))
 
         if rpc_timeout <= 0:
             for task in batch:
@@ -264,11 +345,15 @@ class GrpcWorker:
 
             if exc.code() == grpc.StatusCode.DEADLINE_EXCEEDED:
                 for task in batch:
+                    expired = task.is_expired()
                     task.mark_failed(
-                        "request deadline exceeded",
-                        error_code="deadline_exceeded",
+                        "request deadline exceeded" if expired else "inference RPC timed out",
+                        error_code="deadline_exceeded" if expired else "rpc_timeout",
                     )
                 return
+
+            if exc.code() == grpc.StatusCode.UNAVAILABLE and not self._stop.is_set():
+                self._mark_unavailable()
 
             retiring = self._stop.is_set() and self._retry_on_stop
             retry_allowed = (
@@ -296,13 +381,14 @@ class GrpcWorker:
 
     def _update_state_metrics(self) -> None:
         """Publish lifecycle flags while holding the proxy lock (or during initialization)."""
+        effective = 'UNAVAILABLE' if self._unavailable and self._routing_state == 'READY' else self._routing_state
         for state, metric in self._state_metrics.items():
-            metric.set(int(not self._stop.is_set() and self._routing_state == state))
+            metric.set(int(not self._stop.is_set() and effective == state))
 
     def is_ready(self) -> bool:
         """Report routing eligibility independently of current load."""
         with self._lock:
-            return not self._stop.is_set() and self._routing_state == "READY"
+            return not self._stop.is_set() and self._routing_state == "READY" and not self._unavailable
 
 class GrpcWorkerPool:
     """
@@ -319,6 +405,8 @@ class GrpcWorkerPool:
         self._rr_index = 0
         self._discovery: Optional[WorkerDiscovery] = None
         self._stopping = False
+        self._central_retry = None
+        self._capacity_event = threading.Event()
         raw_static = os.environ.get("STATIC_WORKERS")
         if static_workers is None and raw_static is not None:
             try:
@@ -407,14 +495,52 @@ class GrpcWorkerPool:
         for group in groups.values():
             self._submit_compatible(group)
 
+    def discard_pending(self, task):
+        """Purge abandoned proxy queue entries without closing shared channels."""
+        with self._lock:
+            workers = list(self._workers.values())
+        for worker in workers:
+            worker.discard_pending(task)
+
+    def bind_scheduler(self, retry_handler, wakeup):
+        """Use one central scheduler for accepted retries and capacity notifications."""
+        self._central_retry = retry_handler
+        self._capacity_event = wakeup
+        with self._lock:
+            for worker in self._workers.values():
+                worker._capacity_event = wakeup
+
+    def try_submit(self, batch: Batch) -> Batch:
+        """Return unscheduled tasks to the caller without marking them overloaded."""
+        groups = {}
+        for task in batch:
+            if task.status in (TaskStatus.DONE, TaskStatus.FAILED):
+                continue
+            if task.is_expired():
+                task.mark_failed('request deadline exceeded', 'deadline_exceeded')
+                continue
+            kind = self._kind(task)
+            if not isinstance(kind, str) or kind not in ('simulation', 'synthx_v73', 'synthx_text_v123', 'synthx_text_refinement'):
+                task.mark_failed('invalid task kind', 'invalid_spec')
+                continue
+            groups.setdefault(kind, []).append(task)
+        deferred = []
+        for group in groups.values():
+            if not self._try_submit_compatible(group):
+                deferred.extend(group)
+        return deferred
+
     def _submit_compatible(self, batch: Batch) -> None:
+        if not self._try_submit_compatible(batch):
+            for task in batch:
+                task.mark_failed('all workers at capacity or unavailable', 'overloaded')
+
+    def _try_submit_compatible(self, batch: Batch) -> bool:
         """Prefer idle compatible proxies, then try their remaining capacity."""
         with self._lock:
             ready = [w for w in self._workers.values() if w.is_ready() and self._supports(w, batch[0])]
             if not ready:
-                for task in batch:
-                    task.mark_failed("no ready workers available", error_code="overloaded")
-                return
+                return False
 
             idle = [w for w in ready if not w.busy()]
             pool = idle if idle else ready
@@ -422,19 +548,15 @@ class GrpcWorkerPool:
             self._rr_index += 1
 
         if worker.try_submit(batch):
-            return
+            return True
         else:
             with self._lock:
                 for w in self._workers.values():
                     if w is worker or not w.is_ready() or not self._supports(w, batch[0]):
                         continue
                     if w.try_submit(batch):
-                        return
-            for task in batch:
-                task.mark_failed(
-                    "all workers at capacity",
-                    error_code="overloaded",
-                )
+                        return True
+            return False
 
 
 
@@ -447,7 +569,7 @@ class GrpcWorkerPool:
             # Add proxies before removing stale members so handoff sees current candidates.
             for wid, info in workers.items():
                 if wid not in self._workers:
-                    self._workers[wid] = GrpcWorker(wid, info.address, self.try_resubmit)
+                    self._workers[wid] = GrpcWorker(wid, info.address, self.try_resubmit, self._capacity_event)
                     logger.info("Connected to %s at %s", wid, info.address)
                 self._workers[wid].set_routing_state(info.state)
             # Mark removed proxies stopped before releasing the membership lock.
@@ -460,10 +582,16 @@ class GrpcWorkerPool:
             WORKER_COUNT.set(len(self._workers))
         for worker in removed:
             worker.stop(retry_pending=True)
+        self._capacity_event.set()
 
 
     def try_resubmit(self, task: Task, failed_worker_id: str) -> bool:
-        """Try one handoff to a different worker, preserving the original task deadline."""
+        """Retain retries centrally when bound; otherwise use the legacy direct handoff."""
+        if self._central_retry is not None:
+            with self._lock:
+                if self._stopping:
+                    return False
+            return self._central_retry(task, failed_worker_id)
         with self._lock:
             if self._stopping:
                 return False

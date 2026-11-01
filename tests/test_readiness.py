@@ -8,6 +8,8 @@ from unittest.mock import patch
 from fastapi import FastAPI
 
 from system import api_server
+from system.scheduler import Scheduler
+from system.queue import TaskQueue
 from system.grpc_worker_pool import GrpcWorkerPool
 
 
@@ -45,7 +47,13 @@ class ReadinessTests(unittest.TestCase):
                 "server": ("test", 80), "client": ("test", 1234),
             }, receive, send)
 
-        with patch.object(api_server, "_worker_pool", pool), \
+        scheduler = Scheduler(TaskQueue(1), lambda batch: None)
+        scheduler.start()
+        self.addCleanup(scheduler.stop)
+        with patch.object(api_server, "_scheduler", scheduler, create=True), \
+                patch.object(api_server, "_job_gateway", None), \
+                patch.object(api_server, "JOBS_ENABLED", False), \
+                patch.object(api_server, "_worker_pool", pool), \
                 patch.object(api_server, "USE_GRPC", grpc_mode):
             asyncio.run(request())
         status = next(message["status"] for message in messages

@@ -1,0 +1,36 @@
+groups:
+  - name: inference-runtime
+    interval: 5s
+    rules:
+      - alert: InferenceRuntimeLoopStalled
+        expr: inference_runtime_loop_healthy == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Inference {{ $labels.loop }} loop is not progressing'
+          description: 'Inspect /health/runtime and SQL leases before restarting the affected gateway. Worker capacity is not a liveness signal.'
+      - alert: InferenceApiScrapeFailed
+        expr: up{job=~"inference-api|inference-gateway"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Inference API metrics are unavailable'
+          description: 'Check API reachability and /health/runtime. A scrape timeout alone does not justify restarting workers.'
+      - alert: InferenceSchedulerHealthMissing
+        expr: up{job=~"inference-api|inference-gateway"} == 1 unless on (job, instance) inference_runtime_loop_healthy{loop="scheduler"}
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Scheduler health metric is missing'
+          description: 'The API is reachable but the expected scheduler probe is absent. Check the deployed image and metrics configuration.'
+      - alert: InferenceGatewayHealthMissing
+        expr: up{job="inference-gateway"} == 1 unless on (job, instance) inference_runtime_loop_healthy{loop="gateway"}
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Durable gateway health metric is missing'
+          description: 'The production gateway must expose its durable job recovery-loop health.'

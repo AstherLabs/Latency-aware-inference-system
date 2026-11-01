@@ -19,7 +19,7 @@ import time
 from typing import List
 
 from .config import config
-from .task import Task
+from .task import Task, TaskStatus
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +63,12 @@ class Worker:
             self._batch_queue.append(batch)
         self._has_work.set()
 
+    def discard_pending(self, task):
+        """Release abandoned local queue entries without interrupting active work."""
+        with self._lock:
+            batches = [[item for item in batch if item is not task] for batch in self._batch_queue]
+            self._batch_queue = [batch for batch in batches if batch]
+
     def busy(self) -> bool:
         """Report queued work; unlike the gRPC proxy, this excludes active processing."""
         with self._lock:
@@ -83,6 +89,17 @@ class Worker:
 
     def _process(self, batch: Batch) -> None:
         """Apply batch failure injection and calculate the simulated x-squared output."""
+        live = []
+        for task in batch:
+            if task.status in (TaskStatus.DONE, TaskStatus.FAILED):
+                continue
+            if task.is_expired():
+                task.mark_failed('request deadline exceeded', 'deadline_exceeded')
+                continue
+            live.append(task)
+        batch = live
+        if not batch:
+            return
         for task in batch:
             task.mark_processing()
 
@@ -137,6 +154,13 @@ class WorkerPool:
         for w in self._workers:
             w.stop(timeout=timeout)
         logger.info("WorkerPool stopped")
+
+    def discard_pending(self, task):
+        """Purge cancelled work in the local simulator as well as gRPC mode."""
+        with self._lock:
+            workers = list(self._workers)
+        for worker in workers:
+            worker.discard_pending(task)
 
     def submit(self, batch: Batch) -> None:
         """Route a batch round-robin, preferring workers without queued work."""

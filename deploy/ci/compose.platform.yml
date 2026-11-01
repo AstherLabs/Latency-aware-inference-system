@@ -23,6 +23,12 @@ services:
       STATIC_WORKERS: '{"73":"${PLATFORM_MODEL_HOST:-vast-tunnel}:50061","122":"text-worker:50062"}'
       WORKER_CAPABILITIES: '{"73":["synthx_v73"],"122":["synthx_text_v123","synthx_text_refinement"]}'
       SYNTHX_JOBS_MAX_INFLIGHT: '${SYNTHX_JOBS_MAX_INFLIGHT:-1}'
+    healthcheck:
+      test: ["CMD", "python", "-m", "system.health_probe"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
     ports: ['127.0.0.1:${PLATFORM_GATEWAY_PORT:-8100}:8000']
     volumes: ['${PLATFORM_CONTROL_DIR:?Set the approved deployment control directory}:/run/synthx-deploy:ro']
     restart: unless-stopped

@@ -47,6 +47,10 @@ jobs:
         env:
           SYNTHX_TEST_DATABASE_URL: postgresql://synthx_test:ci-only@127.0.0.1:${{ job.services.postgres.ports['5432'] }}/synthx_platform_ci?sslmode=disable
         run: python deploy/ci/run_tests.py
+      - name: Validate runtime monitoring configuration and alert behavior
+        run: |
+          docker run --rm --entrypoint promtool -v "$PWD/monitoring:/etc/prometheus:ro" prom/prometheus:v3.5.0 check config /etc/prometheus/prometheus.yml /etc/prometheus/prometheus.production.yml
+          docker run --rm --entrypoint promtool -v "$PWD/monitoring/rules:/rules:ro" -w /rules prom/prometheus:v3.5.0 test rules runtime.test.yml
       - name: Export the dependency versions exercised by tests
         run: python -m pip freeze > .ci-constraints.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

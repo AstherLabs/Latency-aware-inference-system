@@ -1,11 +1,15 @@
 """PostgreSQL lease and completion fencing for SynthX inference jobs."""
 import uuid
+import math
 
 
 class JobStore:
-    def __init__(self, database_url):
+    def __init__(self, database_url, *, statement_timeout_seconds=5):
         if not database_url:
             raise ValueError("DATABASE_URL is required for durable jobs")
+        if not math.isfinite(statement_timeout_seconds) or statement_timeout_seconds <= 0:
+            raise ValueError("statement timeout must be positive and finite")
+        self._statement_timeout_ms = max(1, int(statement_timeout_seconds * 1000))
         # Optional dependency: simulator deployments need no database driver.
         import psycopg
         from psycopg.rows import dict_row
@@ -16,7 +20,11 @@ class JobStore:
         self._database_url = database_url
 
     def _connection(self):
-        return self._connect(self._database_url, row_factory=self._row_factory, connect_timeout=5)
+        return self._connect(
+            self._database_url, row_factory=self._row_factory, connect_timeout=5,
+            options=f"-c statement_timeout={self._statement_timeout_ms} "
+                    f"-c lock_timeout={min(1000, self._statement_timeout_ms)}",
+        )
 
     @staticmethod
     def _normalize(row):

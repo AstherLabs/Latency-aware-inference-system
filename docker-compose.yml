@@ -23,6 +23,13 @@ services:
       zookeeper:
         condition: service_healthy
 
+    healthcheck:
+      test: ["CMD", "python", "-m", "system.health_probe"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
+
   worker-0:
     build: .
     stop_grace_period: 35s
@@ -90,6 +97,7 @@ services:
       - --storage.tsdb.retention.time=7d
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/rules:/etc/prometheus/rules:ro
       - prometheus_data:/prometheus
     depends_on:
       - api

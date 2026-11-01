@@ -2,7 +2,7 @@
 
 An inference-serving testbed for studying batching, queueing latency, and worker failure recovery. A FastAPI gateway dispatches batches over gRPC; ZooKeeper tracks worker membership; Prometheus and Grafana expose request behavior.
 
-The current backend simulates inference latency and returns `x * x`. It does not load an ML model or use a GPU. The project focuses on the serving path around computation.
+The default local backend simulates inference latency and returns `x * x`; this mode does not load an ML model or use a GPU. Production SynthX adapters use separate model workers and SQL-backed jobs; see [deployment integration](docs/Inference_CICD.md).
 
 ## Architecture
 
@@ -23,7 +23,7 @@ Prometheus: API /metrics -> Grafana
 
 The API owns task state and the request deadline. Each gRPC worker proxy has a private batch queue and a serial dispatch thread. Remote workers receive serialized inputs and remaining time budgets, then return one result per processed task.
 
-Three locks protect different state: the pool lock protects membership and routing; each proxy lock protects queued and active batches; each task lock protects terminal state updates. RPC execution and worker shutdown happen outside the pool lock so worker removal can hand tasks to surviving workers.
+Separate locks protect queue extraction, scheduler backlog ownership, pool membership, proxy capacity, and task terminal transitions.
 
 ## Run with Docker Compose
 
@@ -74,17 +74,17 @@ docker compose down
 
 A task progresses from `pending` to `processing`, then to `done` or `failed`. Terminal updates are protected by a task lock, so a late response cannot reopen a failed task.
 
-- **Admission:** the API queue holds up to 10,000 tasks by default. A full queue is rejected immediately. Each gRPC proxy accepts at most two outstanding batches, counting its active RPC and queued work. Routing considers only READY proxies, preferring idle workers before trying busy workers with available capacity.
+- **Admission:** the API queue holds up to 10,000 tasks by default. A full queue is rejected immediately. Each gRPC proxy accepts three outstanding batches by default, counting its active RPC and queued work; `WORKER_MAX_OUTSTANDING_BATCHES` changes the limit. Accepted tasks wait centrally when compatible workers are full, rather than failing immediately. Waiting tasks retain order within a kind while other kinds can use compatible capacity. Routing considers only READY proxies, preferring idle workers before trying busy workers with available capacity.
 - **Deadline:** each HTTP prediction gets a 30-second budget, including queueing. Retries keep that deadline. The API uses a monotonic clock and sends a relative remaining budget; remote workers build deadlines using their own clocks. Network transit is not subtracted from the remote relative budget, so the API deadline remains authoritative.
 - **RPC timeout:** a batch call uses the largest remaining task budget, or 35 seconds when no task has a deadline. The remote worker checks individual deadlines independently.
 - **Cancellation:** simulated computation waits in intervals of at most 10 ms, checking task expiry and RPC activity. This is cooperative cancellation of the simulator, not cancellation of a model or GPU kernel.
-- **Retry:** `UNAVAILABLE`, and `CANCELLED` caused by worker removal, may trigger one handoff to a different READY worker. The target must accept the task, and the task must remain nonterminal with time available. Timeout and unrelated cancellation are not retried. There is no delayed retry queue when all targets are full.
+- **Retry:** `UNAVAILABLE`, and `CANCELLED` caused by worker removal, return eligible simulation tasks to central scheduling. `MAX_TASK_RETRIES` defaults to three additional accepted attempts; waiting for capacity consumes no attempt and never resets the deadline. Failed transports are quarantined and probed with bounded backoff. Timeout and unrelated cancellation are not retried. Real SynthX jobs retain SQL lease-based recovery instead of unfenced direct handoff. See [scheduling and recovery](docs/Scheduling_Backpressure.md).
 - **Discovery:** workers register ephemeral ZooKeeper nodes. Session expiry removes a worker from membership; detection time depends on session and connection timing. Removed proxies reject new batches and attempt handoff for eligible queued and active tasks.
 - **Registration recovery:** workers restore registration after reconnecting with a new session. At startup, a conflicting node is left untouched and registration is retried in the background. ZooKeeper does not restart crashed processes; Compose currently has no restart policy.
 
 On SIGTERM or SIGINT, a worker publishes DRAINING through its ZooKeeper registration. Discovery watches membership and node data; the pool keeps the draining proxy but stops routing new tasks to it. State changes alone do not cancel accepted work. Publication gets up to two seconds of foreground waiting within a shared 30-second shutdown budget; gRPC uses the remaining budget to finish active calls. Compose allows 35 seconds before forceful termination. Watch propagation is asynchronous, so calls racing with shutdown can still require handoff. Registration state is not a remote health probe.
 
-Retries can repeat computation when the first worker's outcome is unknown. The service has no remote deduplication or exactly-once guarantee. Task state and queues are in memory and are lost when the API process restarts.
+Retries can repeat computation when the first worker's outcome is unknown. The service has no remote deduplication or exactly-once guarantee. Synchronous `/predict` task state and queues are in memory and are lost when the API process restarts. Durable SynthX job ownership and attempt fencing remain in SQL.
 
 ### HTTP responses
 
@@ -92,11 +92,11 @@ Retries can repeat computation when the first worker's outcome is unknown. The s
 | --- | --- |
 | `200` | Inference completed successfully |
 | `422` | Request validation failed |
-| `503` | API queue full, no READY workers, or all eligible worker proxies at capacity |
+| `503` | API admission queue full; busy workers alone do not reject accepted predictions |
 | `504` | Task deadline or RPC timeout exceeded |
 | `500` | Other inference failures, including unsuccessful handoff |
 
-`/readyz` requires an initialized pool with at least one READY proxy and no pool shutdown in progress. It does not check remote worker health or available capacity; busy workers do not make the API unready. Readiness currently supports only gRPC mode.
+`/readyz` requires an initialized pool with at least one READY proxy and no pool shutdown in progress. It excludes locally quarantined transports but is not an active model-health or free-capacity check; busy workers do not make the API unready. Readiness currently supports only gRPC mode.
 
 A rejected or failed HTTP request is not saved for later processing. Clients must decide whether a new request is appropriate for their own deadline and retry policy.
 
@@ -239,3 +239,15 @@ Dockerfile                    Shared API/worker image
 ## Scope and next work
 
 The next steps are a real model backend and local-mode readiness. Durable asynchronous jobs, authentication, multi-API coordination, worker supervision, and GPU scheduling require additional design. vLLM or SGLang would provide the model execution layer; this project currently provides neither integration.
+
+See [open-source architectural references](docs/Open_Source_References.md) for relevant Ray Serve, Triton, and Celery mechanisms.
+
+Synchronous predictions and text stages use completion notifications and a shared per-process `MAX_SYNC_REQUESTS` limit (default 1024). See [completion, cancellation, and A/B methodology](docs/Completion_Notifications.md).
+
+[Measured completion-notification A/B results](docs/Completion_AB_Results.md) include raw-data provenance and exported figures.
+
+[Current-runtime sustained-overload results](docs/Stress_Results.md) cover 15 minutes at 400 offered RPS, worker outages, resource trends, and recovery.
+
+[Durable job timeouts and runtime health](docs/Durable_Runtime_Health.md) documents per-attempt RPC budgets, SQL lease recovery, independent loop probes, and bounded metrics collection.
+
+[Runtime health checks and alerts](docs/Runtime_Health_Alerts.md) covers Docker probes, sustained Prometheus alerts and production monitoring configuration. [Fault recovery acceptance](docs/Runtime_Health_Acceptance.md) records process restart, lease expiry and stale-result fencing.

@@ -1,0 +1,104 @@
+rule_files:
+  - runtime.yml
+evaluation_interval: 5s
+tests:
+  - name: transient-stall-does-not-fire
+    interval: 5s
+    input_series:
+      - series: 'inference_runtime_loop_healthy{job="inference-gateway",instance="gateway:8000",loop="scheduler"}'
+        values: '1 0 0 0 1 1 1 1 1 1'
+    alert_rule_test:
+      - eval_time: 40s
+        alertname: InferenceRuntimeLoopStalled
+        exp_alerts: []
+  - name: sustained-stall-fires-and-recovers
+    interval: 5s
+    input_series:
+      - series: 'inference_runtime_loop_healthy{job="inference-gateway",instance="gateway:8000",loop="scheduler"}'
+        values: '0 0 0 0 0 0 0 0 1 1'
+    alert_rule_test:
+      - eval_time: 30s
+        alertname: InferenceRuntimeLoopStalled
+        exp_alerts:
+          - exp_labels:
+              job: inference-gateway
+              instance: gateway:8000
+              loop: scheduler
+              severity: critical
+            exp_annotations:
+              summary: 'Inference scheduler loop is not progressing'
+              description: 'Inspect /health/runtime and SQL leases before restarting the affected gateway. Worker capacity is not a liveness signal.'
+      - eval_time: 40s
+        alertname: InferenceRuntimeLoopStalled
+        exp_alerts: []
+  - name: successful-scrape-with-missing-durable-health
+    interval: 5s
+    input_series:
+      - series: 'up{job="inference-gateway",instance="gateway:8000"}'
+        values: '1+0x8'
+      - series: 'inference_runtime_loop_healthy{job="inference-gateway",instance="gateway:8000",loop="scheduler"}'
+        values: '1+0x8'
+    alert_rule_test:
+      - eval_time: 30s
+        alertname: InferenceGatewayHealthMissing
+        exp_alerts:
+          - exp_labels:
+              job: inference-gateway
+              instance: gateway:8000
+              severity: warning
+            exp_annotations:
+              summary: 'Durable gateway health metric is missing'
+              description: 'The production gateway must expose its durable job recovery-loop health.'
+  - name: missing-scrape-alert
+    interval: 5s
+    input_series:
+      - series: 'up{job="inference-api",instance="api:8000"}'
+        values: '0+0x8'
+    alert_rule_test:
+      - eval_time: 30s
+        alertname: InferenceApiScrapeFailed
+        exp_alerts:
+          - exp_labels:
+              job: inference-api
+              instance: api:8000
+              severity: critical
+            exp_annotations:
+              summary: 'Inference API metrics are unavailable'
+              description: 'Check API reachability and /health/runtime. A scrape timeout alone does not justify restarting workers.'
+  - name: missing-scheduler-health
+    interval: 5s
+    input_series:
+      - series: 'up{job="inference-api",instance="api:8000"}'
+        values: '1+0x8'
+    alert_rule_test:
+      - eval_time: 30s
+        alertname: InferenceSchedulerHealthMissing
+        exp_alerts:
+          - exp_labels:
+              job: inference-api
+              instance: api:8000
+              severity: warning
+            exp_annotations:
+              summary: 'Scheduler health metric is missing'
+              description: 'The API is reachable but the expected scheduler probe is absent. Check the deployed image and metrics configuration.'
+  - name: no-worker-capacity-is-not-a-loop-failure
+    interval: 5s
+    input_series:
+      - series: 'up{job="inference-gateway",instance="gateway:8000"}'
+        values: '1+0x10'
+      - series: 'inference_runtime_loop_healthy{job="inference-gateway",instance="gateway:8000",loop="scheduler"}'
+        values: '1+0x10'
+      - series: 'inference_runtime_loop_healthy{job="inference-gateway",instance="gateway:8000",loop="gateway"}'
+        values: '1+0x10'
+      - series: 'inference_registered_workers{job="inference-gateway",instance="gateway:8000"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 45s
+        alertname: InferenceRuntimeLoopStalled
+        exp_alerts: []
+      - eval_time: 45s
+        alertname: InferenceGatewayHealthMissing
+        exp_alerts: []
+      - eval_time: 45s
+        alertname: InferenceSchedulerHealthMissing
+        exp_alerts: []

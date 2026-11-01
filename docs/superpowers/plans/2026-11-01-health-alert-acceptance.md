@@ -1,0 +1,12 @@
+# Runtime health alerts and recovery acceptance
+
+The user approved wiring health checks and alerts, followed by a fault acceptance run. Implement locally before any production rollout. Use the existing Prometheus/Grafana stack, no new external messaging destination, no Docker socket sidecar and no implicit auto-restart of unhealthy containers.
+
+## Design and plan
+1. Add an HTTP runtime probe command and Docker health checks to local API and production gateway; probe /health/runtime, not worker availability. Keep worker capacity separate from liveness. Add Prometheus rules for stale loops, missing scheduler/gateway health series and failed scrapes, requiring 30 seconds of sustained failure. Add Grafana loop-health/age and firing-alert panels. Supply an optional production monitoring compose overlay/config targeting gateway:8000 on deploy_default. Preserve the two-service deployment allowlist.
+2. Test-first: probe status/timeout validation, compose health check contract, Prometheus rule evaluation (promtool), dashboard expressions and production compose validation. Add a test-only subprocess API entrypoint which replaces the scheduler dispatch handler with a controlled gate; no fault endpoint in product code.
+3. Acceptance: disposable SQL + real API subprocess + real gRPC test worker + real Prometheus. Submit immutable SQL jobs via HTTP /jobs. Block scheduler dispatch, retain normal default 10-second loop timeout and 30-second alert duration. Confirm health 503, firing alert, stopped lease renewals and unchanged live lease; restart the API process, confirm jobs resume only after lease expiry and old attempt results are fenced. Verify alerts resolve, healthy runtime and completion for multiple jobs with unchanged deadlines. No Vast model capacity claim.
+4. Run official SQL-enabled CI, read-only review, apply tested files with hashes and retain raw acceptance report/logs. No push, remote restart or remote deployment.
+
+## Defaults and boundaries
+Docker healthcheck every 5 seconds, timeout 3 seconds, 3 failures, 20-second startup grace. Probe HTTP timeout 2 seconds. Prometheus scrape/evaluate every 5 seconds with rule for 30 seconds. Docker marks unhealthy but restart:unless-stopped does not restart an unhealthy running process. Acceptance harness performs a controlled process restart; automated host remediation is not silently enabled. SQL lease120s/renew30s and total deadlines remain unchanged. Alerts fire in Prometheus/Grafana; no email/chat/pager delivery configured without a destination.

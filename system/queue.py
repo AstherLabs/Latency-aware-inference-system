@@ -16,6 +16,18 @@ from typing import List, Optional
 from .task import Task
 
 
+class _SelectiveQueue(Queue):
+    def take_matching(self, predicate):
+        """Remove the first eligible item without moving blocked items to the tail."""
+        with self.mutex:
+            for index, task in enumerate(self.queue):
+                if predicate(task):
+                    del self.queue[index]
+                    self.not_full.notify()
+                    return task
+        return None
+
+
 class TaskQueue:
     """
     Bounded FIFO queue with blocking put/get and bulk-drain support.
@@ -26,7 +38,7 @@ class TaskQueue:
 
     def __init__(self, maxsize: int = 10_000):
         """Create a bounded FIFO queue and separate accounting for enqueued tasks."""
-        self._q: Queue = Queue(maxsize=maxsize)
+        self._q: Queue = _SelectiveQueue(maxsize=maxsize)
         self._total_enqueued = 0
         self._total_dequeued = 0
         self._lock = threading.Lock()
@@ -56,6 +68,18 @@ class TaskQueue:
             return task
         except Empty:
             return None
+
+    def get_matching(self, predicate) -> Optional[Task]:
+        """Take one eligible task immediately, preserving FIFO order within each kind."""
+        task = self._q.take_matching(predicate)
+        if task is not None:
+            with self._lock:
+                self._total_dequeued += 1
+        return task
+
+    def discard(self, task: Task) -> None:
+        """Remove an abandoned task by identity, releasing its admission queue slot."""
+        self.get_matching(lambda candidate: candidate is task)
 
     def drain(self, max_items: int = 256) -> List[Task]:
         """

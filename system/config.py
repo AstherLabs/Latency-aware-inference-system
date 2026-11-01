@@ -7,6 +7,8 @@ via the /config/* API endpoints without touching worker or scheduler code.
 """
 
 import threading
+import os
+import math
 from dataclasses import dataclass, field
 from typing import Literal
 
@@ -38,6 +40,12 @@ class SystemConfig:
 
     # Queue
     max_queue_size: int = 10_000
+    max_sync_requests: int = int(os.getenv("MAX_SYNC_REQUESTS", "1024"))
+    worker_max_outstanding_batches: int = int(os.getenv('WORKER_MAX_OUTSTANDING_BATCHES', '3'))
+    max_task_retries: int = int(os.getenv('MAX_TASK_RETRIES', '3'))
+    worker_recovery_backoff_seconds: float = float(os.getenv('WORKER_RECOVERY_BACKOFF_SECONDS', '1'))
+
+    loop_health_timeout_seconds: float = float(os.getenv("LOOP_HEALTH_TIMEOUT_SECONDS", "10"))
 
     # Server
     host: str = "0.0.0.0"
@@ -46,9 +54,27 @@ class SystemConfig:
     # Internal lock — not part of the dataclass value
     _lock: threading.Lock = field(default_factory=threading.Lock, init=False, repr=False, compare=False)
 
+    @staticmethod
+    def _validate(values):
+        for key in ('worker_max_outstanding_batches', 'max_task_retries', 'max_sync_requests'):
+            if key in values and (type(values[key]) is not int or values[key] < 1):
+                raise ValueError(f'{key} must be a positive integer')
+        if 'loop_health_timeout_seconds' in values:
+            value = values['loop_health_timeout_seconds']
+            if not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
+                raise ValueError('loop_health_timeout_seconds must be positive and finite')
+        if 'worker_recovery_backoff_seconds' in values:
+            value = values['worker_recovery_backoff_seconds']
+            if not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
+                raise ValueError('worker_recovery_backoff_seconds must be positive and finite')
+
+    def __post_init__(self):
+        self._validate(vars(self))
+
     def update(self, **kwargs) -> None:
         """Apply known configuration fields under the configuration lock."""
         with self._lock:
+            self._validate(kwargs)
             for key, value in kwargs.items():
                 if not hasattr(self, key):
                     raise ValueError(f"Unknown config key: {key}")
@@ -65,6 +91,11 @@ class SystemConfig:
                 "failure_rate": self.failure_rate,
                 "latency_threshold_ms": self.latency_threshold_ms,
                 "max_queue_size": self.max_queue_size,
+                "max_sync_requests": self.max_sync_requests,
+                "worker_max_outstanding_batches": self.worker_max_outstanding_batches,
+                "max_task_retries": self.max_task_retries,
+                "worker_recovery_backoff_seconds": self.worker_recovery_backoff_seconds,
+                "loop_health_timeout_seconds": self.loop_health_timeout_seconds,
                 "host": self.host,
                 "port": self.port,
             }

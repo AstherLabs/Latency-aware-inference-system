@@ -1,0 +1,92 @@
+[
+  {
+    "path": "system/health_probe.py",
+    "before": null,
+    "after": "cb08342fac948cbed65182d7ee2d8391de2776c8d34b95fc283c0124f27844c7"
+  },
+  {
+    "path": "tests/test_health_monitoring.py",
+    "before": null,
+    "after": "9cd24d7f43f73da274df5510750b3db654fec2bc84a06cd316e60409cad9d353"
+  },
+  {
+    "path": "docker-compose.yml",
+    "before": "46f2fc93e5bb1f4a4bfc6fd31a9d5cbf98a369e8b6a35d87341bfddade318b1e",
+    "after": "35ea8c85939c8442161c2fceeeeb16408d4d0579086dfcec4adc96cfdb86f22b"
+  },
+  {
+    "path": "deploy/ci/compose.platform.yml",
+    "before": "fa1316926988458bf681022cca91b4851a23e16df7d7c8e5595a014d30a8025a",
+    "after": "945344d08cdb7a391bed290a6e06f9e9284a5f59957548b2c410201b4f5d2722"
+  },
+  {
+    "path": "monitoring/prometheus.yml",
+    "before": "cd7b979eb44c90a205f130db4b17563822a15b524c50ab5ac5a1bdbd5da9a391",
+    "after": "4300abc3ccfa40052d83d933d3354e7775a4c9d3d8fd49fdb44da6bd03854e23"
+  },
+  {
+    "path": "monitoring/prometheus.production.yml",
+    "before": null,
+    "after": "f0cbdd33fcd18831c87c62ac12ad938292851cba39279eb0d0a3ddfc2ff5ef75"
+  },
+  {
+    "path": "monitoring/compose.production.yml",
+    "before": null,
+    "after": "03851f7047e72695cb3b49d016e43dba3fed95c8cd9e2b809f808cf874567cd0"
+  },
+  {
+    "path": "monitoring/rules/runtime.yml",
+    "before": null,
+    "after": "8a383a1f624a0f22f280de7ec3fe9c0a1a427a6858841b484a60ab5ad7fbf6ae"
+  },
+  {
+    "path": "monitoring/rules/runtime.test.yml",
+    "before": null,
+    "after": "b48949ffdfe82e54defb094ed94349f1ec743850f60a1f7c26295771d82abaa1"
+  },
+  {
+    "path": "monitoring/grafana/dashboards/inference.json",
+    "before": "afb7058b6f7f533722cf33dc6d796a59ca42ea1f505a5c23f801359068d9a2c6",
+    "after": "794beb531318a49f3f7d1c845b32af83c80c5726a657f6d8b45cd850bd6643f1"
+  },
+  {
+    "path": "monitoring/grafana/provisioning/datasources/prometheus.yml",
+    "before": "de72ab9fc0b7c1a2546f5eb2a96127bedc798bca937a418314eb2914c6f55247",
+    "after": "65c71400a47e6e91197a26d66544114c4574163faab2753d8f9315c84d721739"
+  },
+  {
+    "path": ".github/workflows/ci-cd.yml",
+    "before": "bac16a251656bfb3231f6fbea5cbe17426d85102a5be31f08ae91ed6a78aeec4",
+    "after": "d2b897bf7b07163b4cce1a82c000342444306c86958d825d02fe361a5a0762a3"
+  },
+  {
+    "path": "experiments/runtime_health_acceptance.py",
+    "before": null,
+    "after": "7e6322b61b43ba866d9f8e9fd56d01e407a34493580a5c78ecc44463d3e76776"
+  },
+  {
+    "path": "experiments/run_runtime_health_acceptance.py",
+    "before": null,
+    "after": "a035a8b5e002358cc26ae2025c8b5ba7a16a7c7d7ef0c53196c45c8a86be5549"
+  },
+  {
+    "path": "experiments/fixtures/runtime_health_api.py",
+    "before": null,
+    "after": "f95b1a4c403828d77ca36b60355f596308c68ab847824d080f488fbbde973c18"
+  },
+  {
+    "path": "docs/Runtime_Health_Alerts.md",
+    "before": null,
+    "after": "a49a1eecb2e3c0f78f3ef043085f12451cddc0e03cd2ebae0f8678c616d49058"
+  },
+  {
+    "path": "docs/Runtime_Health_Acceptance.md",
+    "before": null,
+    "after": "a1b78be6c608d07d09d1bae92ebd92738387a5f682c96154c8620e897eb88275"
+  },
+  {
+    "path": "docs/superpowers/plans/2026-11-01-health-alert-acceptance.md",
+    "before": null,
+    "after": "59d70489ec6554b22a09c59ae750461cda90cae452090a38833889864e49d4e6"
+  }
+]

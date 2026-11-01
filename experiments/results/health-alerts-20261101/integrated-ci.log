@@ -1,0 +1,656 @@
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+
+[notice] A new release of pip is available: 25.0.1 -> 26.2.2
+[notice] To update, run: pip install --upgrade pip
+test_default_capacity_is_three_and_configurable (test_backpressure.BackpressureTests.test_default_capacity_is_three_and_configurable) ... 2026-11-01 09:14:26,876 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:45091
+2026-11-01 09:14:26,876 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:37499
+2026-11-01 09:14:26,876 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:26,930 - system.scheduler - INFO - Scheduler stopped
+2026-11-01 09:14:26,931 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_expired_waiting_task_never_reaches_a_worker (test_backpressure.BackpressureTests.test_expired_waiting_task_never_reaches_a_worker) ... 2026-11-01 09:14:26,970 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:43229
+2026-11-01 09:14:26,970 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:45237
+2026-11-01 09:14:26,971 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:27,126 - system.scheduler - INFO - Scheduler stopped
+2026-11-01 09:14:27,127 - system.grpc_worker_pool - WARNING - Worker live RPC failed: StatusCode.CANCELLED
+2026-11-01 09:14:27,128 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_full_worker_waits_and_preserves_fifo_instead_of_failing (test_backpressure.BackpressureTests.test_full_worker_waits_and_preserves_fifo_instead_of_failing) ... 2026-11-01 09:14:27,133 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:43243
+2026-11-01 09:14:27,134 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:34041
+2026-11-01 09:14:27,134 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:27,278 - system.scheduler - INFO - Scheduler stopped
+2026-11-01 09:14:27,279 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_missing_model_does_not_block_another_compatible_kind (test_backpressure.BackpressureTests.test_missing_model_does_not_block_another_compatible_kind) ... 2026-11-01 09:14:27,289 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:33177
+2026-11-01 09:14:27,289 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:43943
+2026-11-01 09:14:27,290 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:27,345 - system.scheduler - INFO - Scheduler stopped
+2026-11-01 09:14:27,346 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_missing_workers_wait_until_original_deadline (test_backpressure.BackpressureTests.test_missing_workers_wait_until_original_deadline) ... 2026-11-01 09:14:27,354 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:34433
+2026-11-01 09:14:27,354 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:44253
+2026-11-01 09:14:27,354 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:27,355 - system.grpc_worker_pool - INFO - Worker dead removed
+2026-11-01 09:14:27,355 - system.grpc_worker_pool - INFO - Worker live removed
+2026-11-01 09:14:27,569 - system.scheduler - INFO - Scheduler stopped
+2026-11-01 09:14:27,569 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_no_survivor_keeps_accepted_work_until_worker_rejoins (test_backpressure.BackpressureTests.test_no_survivor_keeps_accepted_work_until_worker_rejoins) ... 2026-11-01 09:14:27,577 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:44799
+2026-11-01 09:14:27,577 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:35687
+2026-11-01 09:14:27,577 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:27,579 - system.grpc_worker_pool - INFO - Worker dead removed
+2026-11-01 09:14:27,579 - system.grpc_worker_pool - INFO - Worker live removed
+2026-11-01 09:14:27,580 - system.grpc_worker_pool - WARNING - Worker live RPC failed: StatusCode.CANCELLED
+2026-11-01 09:14:27,581 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:35687
+2026-11-01 09:14:27,630 - system.grpc_worker_pool - INFO - Completed retried task 74bf64ca-b526-4c1d-b7c3-4e9757dec7e2 on live
+2026-11-01 09:14:27,680 - system.scheduler - INFO - Scheduler stopped
+2026-11-01 09:14:27,681 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_reduced_retry_budget_finishes_instead_of_dropping_pending_task (test_backpressure.BackpressureTests.test_reduced_retry_budget_finishes_instead_of_dropping_pending_task) ... 2026-11-01 09:14:27,690 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:36207
+2026-11-01 09:14:27,690 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:38117
+2026-11-01 09:14:27,691 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:27,742 - system.scheduler - INFO - Scheduler stopped
+2026-11-01 09:14:27,743 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_refinement_uses_the_shared_backpressure_dispatch_path (test_backpressure.BackpressureTests.test_refinement_uses_the_shared_backpressure_dispatch_path) ... 2026-11-01 09:14:27,751 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:45851
+2026-11-01 09:14:27,751 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:40083
+2026-11-01 09:14:27,751 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:27,805 - system.scheduler - INFO - Scheduler stopped
+2026-11-01 09:14:27,805 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_retired_kind_is_rejected_by_shared_dispatch (test_backpressure.BackpressureTests.test_retired_kind_is_rejected_by_shared_dispatch) ... 2026-11-01 09:14:27,814 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:45193
+2026-11-01 09:14:27,815 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:39813
+2026-11-01 09:14:27,815 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:27,868 - system.scheduler - INFO - Scheduler stopped
+2026-11-01 09:14:27,868 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_retry_is_retained_even_when_new_request_queue_is_full (test_backpressure.BackpressureTests.test_retry_is_retained_even_when_new_request_queue_is_full) ... 2026-11-01 09:14:27,876 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:39539
+2026-11-01 09:14:27,876 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:45875
+2026-11-01 09:14:27,877 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:27,881 - system.grpc_worker_pool - WARNING - Worker dead RPC failed: StatusCode.UNAVAILABLE
+2026-11-01 09:14:27,887 - system.grpc_worker_pool - INFO - Completed retried task d43b1866-c350-48f6-a83d-1af6cb866655 on live
+2026-11-01 09:14:27,945 - system.scheduler - INFO - Scheduler stopped
+2026-11-01 09:14:27,946 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_retry_waits_for_capacity_without_consuming_an_attempt (test_backpressure.BackpressureTests.test_retry_waits_for_capacity_without_consuming_an_attempt) ... 2026-11-01 09:14:27,954 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:43305
+2026-11-01 09:14:27,954 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:34019
+2026-11-01 09:14:27,954 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:27,959 - system.grpc_worker_pool - WARNING - Worker dead RPC failed: StatusCode.UNAVAILABLE
+2026-11-01 09:14:28,018 - system.grpc_worker_pool - INFO - Completed retried task 57d3e25f-1998-4064-ad76-82c295477824 on live
+2026-11-01 09:14:28,070 - system.scheduler - INFO - Scheduler stopped
+2026-11-01 09:14:28,070 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_transport_quarantine_recovers_without_membership_change (test_backpressure.BackpressureTests.test_transport_quarantine_recovers_without_membership_change) ... 2026-11-01 09:14:28,077 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:37673
+2026-11-01 09:14:28,078 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:39653
+2026-11-01 09:14:28,078 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:28,080 - system.grpc_worker_pool - WARNING - Worker live RPC failed: StatusCode.UNAVAILABLE
+2026-11-01 09:14:28,184 - system.grpc_worker_pool - INFO - Completed retried task 956caa05-1172-49fa-8063-9c8796e1a06e on live
+2026-11-01 09:14:28,238 - system.scheduler - INFO - Scheduler stopped
+2026-11-01 09:14:28,385 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_unknown_kinds_fail_validation_instead_of_growing_backlog (test_backpressure.BackpressureTests.test_unknown_kinds_fail_validation_instead_of_growing_backlog) ... 2026-11-01 09:14:28,394 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:34521
+2026-11-01 09:14:28,394 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:45369
+2026-11-01 09:14:28,395 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:28,395 - system.grpc_worker_pool - INFO - Worker dead removed
+2026-11-01 09:14:28,395 - system.grpc_worker_pool - INFO - Worker live removed
+2026-11-01 09:14:28,450 - system.scheduler - INFO - Scheduler stopped
+2026-11-01 09:14:28,450 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_immediate_second_failure_keeps_retry_owned (test_backpressure.RetryOwnershipTests.test_immediate_second_failure_keeps_retry_owned) ... ok
+test_lifespan_binds_queue_depth_to_current_queue_contents (test_capacity_metrics.QueueDepthTests.test_lifespan_binds_queue_depth_to_current_queue_contents) ... 2026-11-01 09:14:28,456 - system.api_server - INFO - System started — host=0.0.0.0 port=8000
+2026-11-01 09:14:28,458 - system.api_server - INFO - System shutdown complete
+ok
+test_membership_gauge_tracks_additions_and_removals (test_capacity_metrics.WorkerCountTests.test_membership_gauge_tracks_additions_and_removals) ... 2026-11-01 09:14:28,463 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:38001
+2026-11-01 09:14:28,464 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:37759
+2026-11-01 09:14:28,464 - system.grpc_worker_pool - INFO - Worker dead removed
+2026-11-01 09:14:28,465 - system.grpc_worker_pool - INFO - Worker live removed
+2026-11-01 09:14:28,465 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_shutdown_resets_membership_gauge (test_capacity_metrics.WorkerCountTests.test_shutdown_resets_membership_gauge) ... 2026-11-01 09:14:28,472 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:39715
+2026-11-01 09:14:28,473 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:46765
+2026-11-01 09:14:28,473 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+2026-11-01 09:14:28,474 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_gateway_draining_rejects_new_work_but_keeps_health_reads (test_deployment_gate.GateTests.test_gateway_draining_rejects_new_work_but_keeps_health_reads) ... 2026-11-01 09:14:28,478 - httpx - INFO - HTTP Request: POST http://test/text/tasks "HTTP/1.1 503 Service Unavailable"
+2026-11-01 09:14:28,480 - httpx - INFO - HTTP Request: GET http://test/health/deployment "HTTP/1.1 200 OK"
+ok
+test_worker_counts_processing_after_caller_cancels_until_handler_really_returns (test_deployment_gate.GateTests.test_worker_counts_processing_after_caller_cancels_until_handler_really_returns) ... ok
+test_worker_health_reports_same_process_gate_over_loopback (test_deployment_gate.GateTests.test_worker_health_reports_same_process_gate_over_loopback) ... ok
+test_draining_retains_other_workers_and_installs_one_watch (test_discovery_watches.DiscoveryWatchTests.test_draining_retains_other_workers_and_installs_one_watch) ... 2026-11-01 09:14:28,997 - system.zookeeper_registry - INFO - Worker set/state changed: {'a': WorkerInfo(address='a:50051', state='READY'), 'b': WorkerInfo(address='b:50051', state='READY')}
+2026-11-01 09:14:28,998 - system.zookeeper_registry - INFO - Worker set/state changed: {'a': WorkerInfo(address='a:50051', state='DRAINING'), 'b': WorkerInfo(address='b:50051', state='READY')}
+ok
+test_initial_callbacks_never_publish_a_partial_membership (test_discovery_watches.DiscoveryWatchTests.test_initial_callbacks_never_publish_a_partial_membership) ... 2026-11-01 09:14:29,010 - system.zookeeper_registry - INFO - Worker set/state changed: {'a': WorkerInfo(address='a:50051', state='READY'), 'b': WorkerInfo(address='b:50051', state='READY')}
+ok
+test_read_failure_does_not_publish_empty_membership (test_discovery_watches.DiscoveryWatchTests.test_read_failure_does_not_publish_empty_membership) ... 2026-11-01 09:14:29,011 - system.zookeeper_registry - INFO - Worker set/state changed: {'a': WorkerInfo(address='a:50051', state='READY'), 'b': WorkerInfo(address='b:50051', state='READY')}
+2026-11-01 09:14:29,012 - system.zookeeper_registry - ERROR - Worker discovery refresh failed; retaining last snapshot
+Traceback (most recent call last):
+  File "/app/system/zookeeper_registry.py", line 208, in _refresh_loop
+    self._refresh_workers()
+  File "/app/system/zookeeper_registry.py", line 216, in _refresh_workers
+    children = self._zk.get_children(_WORKERS_PATH)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tests/test_discovery_watches.py", line 26, in get_children
+    raise ConnectionLoss()
+kazoo.exceptions.ConnectionLoss
+ok
+test_same_id_can_rejoin_without_duplicate_watch (test_discovery_watches.DiscoveryWatchTests.test_same_id_can_rejoin_without_duplicate_watch) ... 2026-11-01 09:14:29,114 - system.zookeeper_registry - INFO - Worker set/state changed: {'a': WorkerInfo(address='a:50051', state='READY'), 'b': WorkerInfo(address='b:50051', state='READY')}
+2026-11-01 09:14:29,115 - system.zookeeper_registry - INFO - Worker set/state changed: {'b': WorkerInfo(address='b:50051', state='READY')}
+2026-11-01 09:14:29,128 - system.zookeeper_registry - INFO - Worker set/state changed: {'b': WorkerInfo(address='b:50051', state='READY'), 'a': WorkerInfo(address='a:50051', state='READY')}
+ok
+test_rejects_new_work_but_completes_accepted_batches (test_discovery_watches.DrainingAdmissionTests.test_rejects_new_work_but_completes_accepted_batches) ... 2026-11-01 09:14:29,146 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:42897
+2026-11-01 09:14:29,146 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:38985
+2026-11-01 09:14:29,160 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_compose_gateway_and_local_api_use_runtime_probe (test_health_monitoring.HealthProbeTests.test_compose_gateway_and_local_api_use_runtime_probe) ... ok
+test_dashboard_exposes_runtime_health_and_alerts (test_health_monitoring.HealthProbeTests.test_dashboard_exposes_runtime_health_and_alerts) ... ok
+test_healthy_response_passes_but_http_success_with_unhealthy_body_fails (test_health_monitoring.HealthProbeTests.test_healthy_response_passes_but_http_success_with_unhealthy_body_fails) ... ok
+test_network_failure_and_invalid_payload_fail_closed (test_health_monitoring.HealthProbeTests.test_network_failure_and_invalid_payload_fail_closed) ... ok
+test_attempt_rpc_timeout_retries_through_sql_on_another_worker (test_job_gateway.DurableGatewayTests.test_attempt_rpc_timeout_retries_through_sql_on_another_worker) ... 2026-11-01 09:14:29,185 - system.grpc_worker_pool - INFO - Connected to first at 127.0.0.1:37209
+2026-11-01 09:14:29,186 - system.grpc_worker_pool - INFO - Connected to second at 127.0.0.1:34235
+2026-11-01 09:14:29,186 - system.grpc_worker_pool - INFO - GrpcWorkerPool started with 2 static workers
+2026-11-01 09:14:29,186 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:29,300 - system.grpc_worker_pool - WARNING - Worker first RPC failed: StatusCode.DEADLINE_EXCEEDED
+2026-11-01 09:14:29,420 - system.scheduler - INFO - Scheduler stopped
+2026-11-01 09:14:29,420 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_database_statement_wait_is_bounded (test_job_gateway.DurableGatewayTests.test_database_statement_wait_is_bounded) ... ok
+test_deadline_expiry_fences_late_results_and_is_terminal (test_job_gateway.DurableGatewayTests.test_deadline_expiry_fences_late_results_and_is_terminal) ... ok
+test_enabled_lifespan_runs_sql_queue_scheduler_grpc_and_completion (test_job_gateway.DurableGatewayTests.test_enabled_lifespan_runs_sql_queue_scheduler_grpc_and_completion) ... 2026-11-01 09:14:29,511 - system.grpc_worker_pool - INFO - Connected to test at 127.0.0.1:37753
+2026-11-01 09:14:29,511 - system.grpc_worker_pool - INFO - GrpcWorkerPool started with 1 static workers
+2026-11-01 09:14:29,512 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:29,512 - system.api_server - INFO - System started — host=0.0.0.0 port=8000
+2026-11-01 09:14:29,527 - httpx - INFO - HTTP Request: POST http://test/jobs "HTTP/1.1 202 Accepted"
+2026-11-01 09:14:29,530 - httpx - INFO - HTTP Request: GET http://test/jobs/8182a8ad-5346-4da5-96bb-f25ff6ef11d9 "HTTP/1.1 200 OK"
+2026-11-01 09:14:29,584 - httpx - INFO - HTTP Request: GET http://test/jobs/8182a8ad-5346-4da5-96bb-f25ff6ef11d9 "HTTP/1.1 200 OK"
+2026-11-01 09:14:29,641 - httpx - INFO - HTTP Request: GET http://test/jobs/8182a8ad-5346-4da5-96bb-f25ff6ef11d9 "HTTP/1.1 200 OK"
+2026-11-01 09:14:29,697 - httpx - INFO - HTTP Request: GET http://test/jobs/8182a8ad-5346-4da5-96bb-f25ff6ef11d9 "HTTP/1.1 200 OK"
+2026-11-01 09:14:29,756 - httpx - INFO - HTTP Request: GET http://test/jobs/8182a8ad-5346-4da5-96bb-f25ff6ef11d9 "HTTP/1.1 200 OK"
+2026-11-01 09:14:29,817 - httpx - INFO - HTTP Request: GET http://test/jobs/8182a8ad-5346-4da5-96bb-f25ff6ef11d9 "HTTP/1.1 200 OK"
+2026-11-01 09:14:29,876 - httpx - INFO - HTTP Request: GET http://test/jobs/8182a8ad-5346-4da5-96bb-f25ff6ef11d9 "HTTP/1.1 200 OK"
+2026-11-01 09:14:29,938 - httpx - INFO - HTTP Request: GET http://test/jobs/8182a8ad-5346-4da5-96bb-f25ff6ef11d9 "HTTP/1.1 200 OK"
+2026-11-01 09:14:29,997 - httpx - INFO - HTTP Request: GET http://test/jobs/8182a8ad-5346-4da5-96bb-f25ff6ef11d9 "HTTP/1.1 200 OK"
+2026-11-01 09:14:30,053 - httpx - INFO - HTTP Request: GET http://test/jobs/8182a8ad-5346-4da5-96bb-f25ff6ef11d9 "HTTP/1.1 200 OK"
+2026-11-01 09:14:30,094 - system.scheduler - INFO - Scheduler stopped
+2026-11-01 09:14:30,095 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+2026-11-01 09:14:30,095 - system.api_server - INFO - System shutdown complete
+ok
+test_expired_attempt_cannot_renew_or_complete_before_recovery (test_job_gateway.DurableGatewayTests.test_expired_attempt_cannot_renew_or_complete_before_recovery) ... ok
+test_full_queue_defers_job_without_losing_original_deadline (test_job_gateway.DurableGatewayTests.test_full_queue_defers_job_without_losing_original_deadline) ... ok
+test_gateway_uses_authoritative_spec_and_persists_completion (test_job_gateway.DurableGatewayTests.test_gateway_uses_authoritative_spec_and_persists_completion) ... ok
+test_http_requires_bearer_rejects_extra_fields_and_returns_durable_state (test_job_gateway.DurableGatewayTests.test_http_requires_bearer_rejects_extra_fields_and_returns_durable_state) ... 2026-11-01 09:14:30,189 - httpx - INFO - HTTP Request: POST http://test/jobs "HTTP/1.1 401 Unauthorized"
+2026-11-01 09:14:30,189 - httpx - INFO - HTTP Request: GET http://test/jobs/08919c35-f920-4f8d-81d4-7d8aa22b6e87 "HTTP/1.1 401 Unauthorized"
+2026-11-01 09:14:30,190 - httpx - INFO - HTTP Request: POST http://test/jobs "HTTP/1.1 422 Unprocessable Entity"
+2026-11-01 09:14:30,190 - httpx - INFO - HTTP Request: GET http://test/jobs/invalid "HTTP/1.1 422 Unprocessable Entity"
+2026-11-01 09:14:30,191 - httpx - INFO - HTTP Request: POST http://test/jobs "HTTP/1.1 422 Unprocessable Entity"
+2026-11-01 09:14:30,201 - httpx - INFO - HTTP Request: POST http://test/jobs "HTTP/1.1 202 Accepted"
+2026-11-01 09:14:30,204 - httpx - INFO - HTTP Request: GET http://test/jobs/08919c35-f920-4f8d-81d4-7d8aa22b6e87 "HTTP/1.1 200 OK"
+2026-11-01 09:14:30,207 - httpx - INFO - HTTP Request: GET http://test/jobs/0aa04889-72a6-4c41-b621-da52f9520052 "HTTP/1.1 404 Not Found"
+ok
+test_live_lease_is_not_reclaimed_and_expired_lease_gets_new_attempt (test_job_gateway.DurableGatewayTests.test_live_lease_is_not_reclaimed_and_expired_lease_gets_new_attempt) ... ok
+test_locked_candidate_does_not_block_other_claims (test_job_gateway.DurableGatewayTests.test_locked_candidate_does_not_block_other_claims) ... ok
+test_lost_lease_prevents_waiting_old_task_execution (test_job_gateway.DurableGatewayTests.test_lost_lease_prevents_waiting_old_task_execution) ... ok
+test_recovery_discovers_jobs_without_http_poke_and_renews_live_lease (test_job_gateway.DurableGatewayTests.test_recovery_discovers_jobs_without_http_poke_and_renews_live_lease) ... ok
+test_restart_does_not_resubmit_live_lease_and_fences_old_attempt (test_job_gateway.DurableGatewayTests.test_restart_does_not_resubmit_live_lease_and_fences_old_attempt) ... ok
+test_stalled_scheduler_waits_for_lease_expiry_before_recovery (test_job_gateway.DurableGatewayTests.test_stalled_scheduler_waits_for_lease_expiry_before_recovery) ... 2026-11-01 09:14:30,376 - system.job_gateway - ERROR - Scheduler progress lost; job 2446b694-c0bd-4f58-b9d7-bc5560d1b164 awaits lease recovery
+ok
+test_tampered_spec_is_failed_before_dispatch (test_job_gateway.DurableGatewayTests.test_tampered_spec_is_failed_before_dispatch) ... ok
+test_worker_busy_retries_but_permanent_input_error_is_terminal (test_job_gateway.DurableGatewayTests.test_worker_busy_retries_but_permanent_input_error_is_terminal) ... ok
+test_completion_flows_from_queue_task_back_to_durable_state (test_job_gateway_unit.JobGatewayUnitTests.test_completion_flows_from_queue_task_back_to_durable_state) ... ok
+test_disabled_jobs_are_unavailable_without_database_or_token (test_job_gateway_unit.JobGatewayUnitTests.test_disabled_jobs_are_unavailable_without_database_or_token) ... 2026-11-01 09:14:30,655 - httpx - INFO - HTTP Request: POST http://test/jobs "HTTP/1.1 503 Service Unavailable"
+ok
+test_invalid_admission_configuration_does_not_start_workers (test_job_gateway_unit.JobGatewayUnitTests.test_invalid_admission_configuration_does_not_start_workers) ... ok
+test_all_draining_returns_http_503 (test_readiness.ReadinessTests.test_all_draining_returns_http_503) ... 2026-11-01 09:14:30,656 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:30,707 - system.scheduler - INFO - Scheduler stopped
+ok
+test_busy_worker_does_not_make_the_api_unready (test_readiness.ReadinessTests.test_busy_worker_does_not_make_the_api_unready) ... 2026-11-01 09:14:30,707 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:30,761 - system.scheduler - INFO - Scheduler stopped
+ok
+test_empty_membership_returns_http_503 (test_readiness.ReadinessTests.test_empty_membership_returns_http_503) ... 2026-11-01 09:14:30,762 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:30,818 - system.scheduler - INFO - Scheduler stopped
+ok
+test_local_mode_returns_http_503_without_calling_grpc_methods (test_readiness.ReadinessTests.test_local_mode_returns_http_503_without_calling_grpc_methods) ... 2026-11-01 09:14:30,818 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:30,870 - system.scheduler - INFO - Scheduler stopped
+ok
+test_mixed_ready_and_draining_returns_http_200 (test_readiness.ReadinessTests.test_mixed_ready_and_draining_returns_http_200) ... 2026-11-01 09:14:30,871 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:30,924 - system.scheduler - INFO - Scheduler stopped
+ok
+test_registered_worker_returns_ready (test_readiness.ReadinessTests.test_registered_worker_returns_ready) ... 2026-11-01 09:14:30,925 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:30,976 - system.scheduler - INFO - Scheduler stopped
+ok
+test_stopping_pool_returns_http_503_even_with_members (test_readiness.ReadinessTests.test_stopping_pool_returns_http_503_even_with_members) ... 2026-11-01 09:14:30,977 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:31,032 - system.scheduler - INFO - Scheduler stopped
+ok
+test_uninitialized_pool_returns_http_503 (test_readiness.ReadinessTests.test_uninitialized_pool_returns_http_503) ... 2026-11-01 09:14:31,033 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:31,089 - system.scheduler - INFO - Scheduler stopped
+ok
+test_all_draining_rejects_every_task_and_reports_unready (test_ready_routing.ReadyRoutingTests.test_all_draining_rejects_every_task_and_reports_unready) ... 2026-11-01 09:14:31,095 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:38293
+2026-11-01 09:14:31,095 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:43897
+2026-11-01 09:14:31,096 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_busy_ready_fallback_never_attempts_draining_proxy (test_ready_routing.ReadyRoutingTests.test_busy_ready_fallback_never_attempts_draining_proxy) ... 2026-11-01 09:14:31,102 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:36621
+2026-11-01 09:14:31,103 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:41151
+2026-11-01 09:14:31,117 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_empty_membership_rejects_as_unavailable (test_ready_routing.ReadyRoutingTests.test_empty_membership_rejects_as_unavailable) ... 2026-11-01 09:14:31,125 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:41221
+2026-11-01 09:14:31,125 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:42671
+2026-11-01 09:14:31,126 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+2026-11-01 09:14:31,126 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_ready_and_stopped_are_distinct_from_busy (test_ready_routing.ReadyRoutingTests.test_ready_and_stopped_are_distinct_from_busy) ... 2026-11-01 09:14:31,133 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:44131
+2026-11-01 09:14:31,133 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:40531
+2026-11-01 09:14:31,134 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_retry_does_not_reserve_when_only_other_worker_is_draining (test_ready_routing.ReadyRoutingTests.test_retry_does_not_reserve_when_only_other_worker_is_draining) ... 2026-11-01 09:14:31,141 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:39389
+2026-11-01 09:14:31,141 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:45253
+2026-11-01 09:14:31,142 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_accepted_retry_is_not_complete_until_result_arrives (test_retry_metrics.RetryMetricTests.test_accepted_retry_is_not_complete_until_result_arrives) ... 2026-11-01 09:14:31,150 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:45895
+2026-11-01 09:14:31,150 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:41649
+2026-11-01 09:14:31,151 - system.grpc_worker_pool - INFO - Retrying task 61ec83e1-5325-4d09-b8b9-5fcf22c5601a from dead to live (retry=1)
+2026-11-01 09:14:31,159 - system.grpc_worker_pool - INFO - Completed retried task 61ec83e1-5325-4d09-b8b9-5fcf22c5601a on live
+2026-11-01 09:14:31,166 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_full_target_does_not_count_a_retry_submission (test_retry_metrics.RetryMetricTests.test_full_target_does_not_count_a_retry_submission) ... 2026-11-01 09:14:31,173 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:34407
+2026-11-01 09:14:31,174 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:46701
+2026-11-01 09:14:31,177 - system.grpc_worker_pool - WARNING - Worker live RPC failed: StatusCode.CANCELLED
+2026-11-01 09:14:31,177 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_normal_completion_does_not_count_as_a_retry (test_retry_metrics.RetryMetricTests.test_normal_completion_does_not_count_as_a_retry) ... 2026-11-01 09:14:31,182 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:37665
+2026-11-01 09:14:31,183 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:33581
+2026-11-01 09:14:31,197 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_blocked_gateway_is_unhealthy_even_while_its_thread_is_alive (test_runtime_health.GatewayHealthTests.test_blocked_gateway_is_unhealthy_even_while_its_thread_is_alive) ... ok
+test_invalid_timeout_values_are_rejected_before_startup (test_runtime_health.GatewayHealthTests.test_invalid_timeout_values_are_rejected_before_startup) ... ok
+test_stalled_scrape_does_not_block_health_or_spawn_more_collectors (test_runtime_health.MetricsIsolationTests.test_stalled_scrape_does_not_block_health_or_spawn_more_collectors) ... 2026-11-01 09:14:31,311 - httpx - INFO - HTTP Request: GET http://test/health/runtime "HTTP/1.1 503 Service Unavailable"
+2026-11-01 09:14:31,313 - httpx - INFO - HTTP Request: GET http://test/metrics "HTTP/1.1 503 Service Unavailable"
+2026-11-01 09:14:31,788 - httpx - INFO - HTTP Request: GET http://test/metrics "HTTP/1.1 503 Service Unavailable"
+ok
+test_real_grpc_attempt_cap_is_retryable_but_total_expiry_is_terminal (test_runtime_health.RpcBudgetTests.test_real_grpc_attempt_cap_is_retryable_but_total_expiry_is_terminal) ... 2026-11-01 09:14:31,883 - system.grpc_worker_pool - WARNING - Worker budget-test RPC failed: StatusCode.DEADLINE_EXCEEDED
+2026-11-01 09:14:31,937 - system.grpc_worker_pool - WARNING - Worker budget-test RPC failed: StatusCode.DEADLINE_EXCEEDED
+ok
+test_shared_rpc_obeys_strictest_attempt_cap (test_runtime_health.RpcBudgetTests.test_shared_rpc_obeys_strictest_attempt_cap) ... ok
+test_idle_scheduler_progresses_but_blocked_dispatch_goes_stale (test_runtime_health.RuntimeHealthTests.test_idle_scheduler_progresses_but_blocked_dispatch_goes_stale) ... 2026-11-01 09:14:32,036 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:32,302 - system.scheduler - INFO - Scheduler stopped
+2026-11-01 09:14:32,302 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:32,514 - system.scheduler - INFO - Scheduler stopped
+ok
+test_normal_capacity_wait_is_healthy_progress (test_runtime_health.RuntimeHealthTests.test_normal_capacity_wait_is_healthy_progress) ... 2026-11-01 09:14:32,515 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:32,736 - system.scheduler - INFO - Scheduler stopped
+ok
+test_repeated_dispatch_errors_are_not_successful_loop_progress (test_runtime_health.RuntimeHealthTests.test_repeated_dispatch_errors_are_not_successful_loop_progress) ... 2026-11-01 09:14:32,737 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:32,791 - system.scheduler - ERROR - batch_handler raised an exception
+Traceback (most recent call last):
+  File "/app/system/scheduler.py", line 302, in _loop
+    deferred = self._handler(live) if live else []
+               ^^^^^^^^^^^^^^^^^^^
+  File "/app/tests/test_runtime_health.py", line 47, in fail
+    raise RuntimeError("dispatch is broken")
+RuntimeError: dispatch is broken
+2026-11-01 09:14:32,843 - system.scheduler - ERROR - batch_handler raised an exception
+Traceback (most recent call last):
+  File "/app/system/scheduler.py", line 302, in _loop
+    deferred = self._handler(live) if live else []
+               ^^^^^^^^^^^^^^^^^^^
+  File "/app/tests/test_runtime_health.py", line 47, in fail
+    raise RuntimeError("dispatch is broken")
+RuntimeError: dispatch is broken
+2026-11-01 09:14:32,899 - system.scheduler - ERROR - batch_handler raised an exception
+Traceback (most recent call last):
+  File "/app/system/scheduler.py", line 302, in _loop
+    deferred = self._handler(live) if live else []
+               ^^^^^^^^^^^^^^^^^^^
+  File "/app/tests/test_runtime_health.py", line 47, in fail
+    raise RuntimeError("dispatch is broken")
+RuntimeError: dispatch is broken
+2026-11-01 09:14:32,939 - system.scheduler - INFO - Scheduler stopped
+ok
+test_rpc_timeout_defers_durable_job_without_extending_deadline (test_runtime_health.RuntimeHealthTests.test_rpc_timeout_defers_durable_job_without_extending_deadline) ... ok
+test_runtime_probe_checks_progress_without_waiting_for_gateway_lock (test_runtime_health.RuntimeHealthTests.test_runtime_probe_checks_progress_without_waiting_for_gateway_lock) ... 2026-11-01 09:14:32,941 - httpx - INFO - HTTP Request: GET http://test/health/runtime "HTTP/1.1 503 Service Unavailable"
+ok
+test_scheduler_stalling_during_sql_claim_does_not_enqueue_attempt (test_runtime_health.RuntimeHealthTests.test_scheduler_stalling_during_sql_claim_does_not_enqueue_attempt) ... ok
+test_unhealthy_scheduler_does_not_claim_jobs (test_runtime_health.RuntimeHealthTests.test_unhealthy_scheduler_does_not_claim_jobs) ... ok
+test_unhealthy_scheduler_leaves_sql_lease_and_invalidates_local_task (test_runtime_health.RuntimeHealthTests.test_unhealthy_scheduler_leaves_sql_lease_and_invalidates_local_task) ... 2026-11-01 09:14:32,943 - system.job_gateway - ERROR - Scheduler progress lost; job job awaits lease recovery
+ok
+test_durable_job_transport_failure_is_retryable_without_immediate_handoff (test_static_workers.StaticWorkerTests.test_durable_job_transport_failure_is_retryable_without_immediate_handoff) ... 2026-11-01 09:14:32,945 - system.grpc_worker_pool - WARNING - Worker absent RPC failed: StatusCode.UNAVAILABLE
+ok
+test_malformed_static_map_fails_before_starting_discovery (test_static_workers.StaticWorkerTests.test_malformed_static_map_fails_before_starting_discovery) ... ok
+test_rpc_omitted_result_fails_durable_job_for_recovery (test_static_workers.StaticWorkerTests.test_rpc_omitted_result_fails_durable_job_for_recovery) ... ok
+test_static_workers_env_bypasses_zookeeper_and_routes_real_rpc (test_static_workers.StaticWorkerTests.test_static_workers_env_bypasses_zookeeper_and_routes_real_rpc) ... 2026-11-01 09:14:32,957 - system.grpc_worker_pool - INFO - Connected to vast at 127.0.0.1:38957
+2026-11-01 09:14:32,957 - system.grpc_worker_pool - INFO - GrpcWorkerPool started with 1 static workers
+2026-11-01 09:14:32,961 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_cancelled_handler_releases_capacity (test_sync_requests.AdmissionTests.test_cancelled_handler_releases_capacity) ... ok
+test_capacity_rejects_before_body_read_and_health_stays_available (test_sync_requests.AdmissionTests.test_capacity_rejects_before_body_read_and_health_stays_available) ... ok
+test_discard_cleans_latency_buffer_even_after_strategy_change (test_sync_requests.AlternateQueueCleanupTests.test_discard_cleans_latency_buffer_even_after_strategy_change) ... ok
+test_local_worker_pool_releases_abandoned_batch (test_sync_requests.AlternateQueueCleanupTests.test_local_worker_pool_releases_abandoned_batch) ... ok
+test_local_worker_skips_terminal_batch_without_spending_inference_time (test_sync_requests.AlternateQueueCleanupTests.test_local_worker_skips_terminal_batch_without_spending_inference_time) ... ok
+test_background_completion_wakes_all_waiters_and_preserves_first_result (test_sync_requests.CompletionTests.test_background_completion_wakes_all_waiters_and_preserves_first_result) ... ok
+test_completion_before_registration_is_not_lost (test_sync_requests.CompletionTests.test_completion_before_registration_is_not_lost) ... ok
+test_timeout_and_cancel_remove_waiters_without_cancelling_shared_task (test_sync_requests.CompletionTests.test_timeout_and_cancel_remove_waiters_without_cancelling_shared_task) ... ok
+test_cancelled_http_request_does_not_leave_queued_work (test_sync_requests.EndpointCancellationTests.test_cancelled_http_request_does_not_leave_queued_work) ... ok
+test_discard_queued_task_preserves_active_rpc_and_other_batch_members (test_sync_requests.ProxyCleanupTests.test_discard_queued_task_preserves_active_rpc_and_other_batch_members) ... 2026-11-01 09:14:32,998 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:38389
+2026-11-01 09:14:32,999 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:33417
+2026-11-01 09:14:33,010 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_discard_preserves_other_tasks_and_releases_capacity (test_sync_requests.QueueCleanupTests.test_discard_preserves_other_tasks_and_releases_capacity) ... ok
+test_disconnect_immediately_cancels_and_purges_waiting_task (test_sync_requests.WaitCleanupTests.test_disconnect_immediately_cancels_and_purges_waiting_task) ... ok
+test_original_deadline_expires_without_a_worker_notification (test_sync_requests.WaitCleanupTests.test_original_deadline_expires_without_a_worker_notification) ... ok
+test_authenticated_text_stage_is_scheduled_and_unknown_versions_rejected (test_text_gateway.TextGatewayTests.test_authenticated_text_stage_is_scheduled_and_unknown_versions_rejected) ... 2026-11-01 09:14:33,030 - system.grpc_worker_pool - INFO - Connected to text at 127.0.0.1:39621
+2026-11-01 09:14:33,030 - system.grpc_worker_pool - INFO - GrpcWorkerPool started with 1 static workers
+2026-11-01 09:14:33,030 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:33,033 - httpx - INFO - HTTP Request: POST http://test/text/tasks "HTTP/1.1 401 Unauthorized"
+2026-11-01 09:14:33,095 - httpx - INFO - HTTP Request: POST http://test/text/tasks "HTTP/1.1 200 OK"
+2026-11-01 09:14:33,097 - httpx - INFO - HTTP Request: POST http://test/text/tasks "HTTP/1.1 422 Unprocessable Entity"
+2026-11-01 09:14:33,100 - httpx - INFO - HTTP Request: POST http://test/text/tasks "HTTP/1.1 422 Unprocessable Entity"
+2026-11-01 09:14:33,102 - httpx - INFO - HTTP Request: POST http://test/text/tasks "HTTP/1.1 422 Unprocessable Entity"
+2026-11-01 09:14:33,105 - httpx - INFO - HTTP Request: POST http://test/text/tasks "HTTP/1.1 422 Unprocessable Entity"
+2026-11-01 09:14:33,141 - system.scheduler - INFO - Scheduler stopped
+2026-11-01 09:14:33,142 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_adapter_rejects_retired_versions_before_http (test_text_only_v123.RetiredAdapterTests.test_adapter_rejects_retired_versions_before_http) ... ok
+test_new_worker_uses_only_canonical_origin (test_text_only_v123.RetiredAdapterTests.test_new_worker_uses_only_canonical_origin) ... ok
+test_retired_backend_configuration_cannot_start_as_simulation (test_text_only_v123.RetiredAdapterTests.test_retired_backend_configuration_cannot_start_as_simulation) ... ok
+test_retired_versions_are_rejected_before_enqueue (test_text_only_v123.RetiredGatewayTests.test_retired_versions_are_rejected_before_enqueue) ... 2026-11-01 09:14:33,148 - httpx - INFO - HTTP Request: POST http://test/text/tasks "HTTP/1.1 422 Unprocessable Entity"
+2026-11-01 09:14:33,150 - httpx - INFO - HTTP Request: POST http://test/text/tasks "HTTP/1.1 422 Unprocessable Entity"
+2026-11-01 09:14:33,154 - httpx - INFO - HTTP Request: POST http://test/text/tasks "HTTP/1.1 422 Unprocessable Entity"
+ok
+test_invalid_origin_fails_at_startup (test_text_v123.TextV123GatewayTests.test_invalid_origin_fails_at_startup) ... ok
+test_v123_routes_to_its_origin_and_rejects_mismatched_versions (test_text_v123.TextV123GatewayTests.test_v123_routes_to_its_origin_and_rejects_mismatched_versions) ... 2026-11-01 09:14:33,159 - system.grpc_worker_pool - INFO - Connected to text at 127.0.0.1:39393
+2026-11-01 09:14:33,159 - system.grpc_worker_pool - INFO - GrpcWorkerPool started with 1 static workers
+2026-11-01 09:14:33,159 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:14:33,162 - httpx - INFO - HTTP Request: POST http://test/text/tasks "HTTP/1.1 401 Unauthorized"
+2026-11-01 09:14:33,221 - system.worker_text - INFO - Text worker model=text_v1.2.3 operation=retrieve elapsed_seconds=0.002
+2026-11-01 09:14:33,223 - httpx - INFO - HTTP Request: POST http://test/text/tasks "HTTP/1.1 200 OK"
+2026-11-01 09:14:33,226 - httpx - INFO - HTTP Request: POST http://test/text/tasks "HTTP/1.1 422 Unprocessable Entity"
+2026-11-01 09:14:33,287 - system.worker_text - INFO - Text worker model=text_v1.2.3 operation=retrieve elapsed_seconds=0.001
+2026-11-01 09:14:33,290 - httpx - INFO - HTTP Request: POST http://test/text/tasks "HTTP/1.1 502 Bad Gateway"
+2026-11-01 09:14:33,348 - system.worker_text - INFO - Text worker model=text_v1.2.3 operation=rerank elapsed_seconds=0.001
+2026-11-01 09:14:33,351 - httpx - INFO - HTTP Request: POST http://test/text/tasks "HTTP/1.1 502 Bad Gateway"
+2026-11-01 09:14:33,411 - system.worker_text - INFO - Text worker model=text_v1.2.3 operation=rerank elapsed_seconds=0.001
+2026-11-01 09:14:33,414 - httpx - INFO - HTTP Request: POST http://test/text/tasks "HTTP/1.1 200 OK"
+2026-11-01 09:14:33,476 - system.worker_text - INFO - Text worker model=text_v1.2_refinement operation=retrieve elapsed_seconds=0.001
+2026-11-01 09:14:33,479 - httpx - INFO - HTTP Request: POST http://test/text/tasks "HTTP/1.1 200 OK"
+2026-11-01 09:14:33,485 - httpx - INFO - HTTP Request: POST http://test/text/tasks "HTTP/1.1 422 Unprocessable Entity"
+2026-11-01 09:14:33,543 - system.worker_text - INFO - Text worker model=text_v1.2_refinement operation=rerank elapsed_seconds=0.001
+2026-11-01 09:14:33,546 - httpx - INFO - HTTP Request: POST http://test/text/tasks "HTTP/1.1 200 OK"
+2026-11-01 09:14:33,594 - system.scheduler - INFO - Scheduler stopped
+2026-11-01 09:14:33,594 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_all_expired_tasks_end_the_simulated_wait_early (test_worker_deadlines.DeadlineTests.test_all_expired_tasks_end_the_simulated_wait_early) ... ok
+test_already_expired_task_has_one_timeout_result (test_worker_deadlines.DeadlineTests.test_already_expired_task_has_one_timeout_result) ... ok
+test_mixed_deadlines_preserve_the_unexpired_task (test_worker_deadlines.DeadlineTests.test_mixed_deadlines_preserve_the_unexpired_task) ... ok
+test_rpc_cancellation_ends_the_simulated_wait_early (test_worker_deadlines.DeadlineTests.test_rpc_cancellation_ends_the_simulated_wait_early) ... ok
+test_rpc_timeout_marks_failure_without_retry (test_worker_deadlines.DeadlineTests.test_rpc_timeout_marks_failure_without_retry) ... 2026-11-01 09:14:34,692 - system.grpc_worker_pool - WARNING - Worker test RPC failed: StatusCode.DEADLINE_EXCEEDED
+ok
+test_task_without_a_budget_completes (test_worker_deadlines.DeadlineTests.test_task_without_a_budget_completes) ... ok
+test_platform_shutdown_does_not_retry (test_worker_handoff.HandoffTests.test_platform_shutdown_does_not_retry) ... 2026-11-01 09:14:34,820 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:39181
+2026-11-01 09:14:34,820 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:46231
+2026-11-01 09:14:34,823 - system.grpc_worker_pool - WARNING - Worker dead RPC failed: StatusCode.CANCELLED
+2026-11-01 09:14:34,824 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+2026-11-01 09:14:34,824 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_removal_skips_expired_completed_and_retry_exhausted_tasks (test_worker_handoff.HandoffTests.test_removal_skips_expired_completed_and_retry_exhausted_tasks) ... 2026-11-01 09:14:34,830 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:34211
+2026-11-01 09:14:34,830 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:37483
+2026-11-01 09:14:34,833 - system.grpc_worker_pool - INFO - Worker dead removed
+2026-11-01 09:14:34,833 - system.grpc_worker_pool - WARNING - Worker dead RPC failed: StatusCode.CANCELLED
+2026-11-01 09:14:34,833 - system.grpc_worker_pool - INFO - Retrying task 6311b572-6a57-4488-a069-535f9f175fca from dead to live (retry=1)
+2026-11-01 09:14:34,835 - system.grpc_worker_pool - INFO - Completed retried task 6311b572-6a57-4488-a069-535f9f175fca on live
+2026-11-01 09:14:34,846 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_removal_transfers_active_and_queued_tasks_without_pool_lock (test_worker_handoff.HandoffTests.test_removal_transfers_active_and_queued_tasks_without_pool_lock) ... 2026-11-01 09:14:34,853 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:45555
+2026-11-01 09:14:34,853 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:33939
+2026-11-01 09:14:34,855 - system.grpc_worker_pool - INFO - Worker dead removed
+2026-11-01 09:14:34,855 - system.grpc_worker_pool - INFO - Retrying task c5110831-5dc8-4810-ad85-d2a13d426a07 from dead to live (retry=1)
+2026-11-01 09:14:34,856 - system.grpc_worker_pool - WARNING - Worker dead RPC failed: StatusCode.CANCELLED
+2026-11-01 09:14:34,856 - system.grpc_worker_pool - INFO - Retrying task df619c1f-7fdd-470b-9c5d-9df20a2aaa6d from dead to live (retry=1)
+2026-11-01 09:14:34,857 - system.grpc_worker_pool - INFO - Completed retried task c5110831-5dc8-4810-ad85-d2a13d426a07 on live
+2026-11-01 09:14:34,858 - system.grpc_worker_pool - INFO - Completed retried task df619c1f-7fdd-470b-9c5d-9df20a2aaa6d on live
+2026-11-01 09:14:34,868 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_removal_without_survivors_finishes_tasks (test_worker_handoff.HandoffTests.test_removal_without_survivors_finishes_tasks) ... 2026-11-01 09:14:34,875 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:41849
+2026-11-01 09:14:34,875 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:34169
+2026-11-01 09:14:34,877 - system.grpc_worker_pool - INFO - Worker dead removed
+2026-11-01 09:14:34,877 - system.grpc_worker_pool - INFO - Worker live removed
+2026-11-01 09:14:34,878 - system.grpc_worker_pool - WARNING - Worker dead RPC failed: StatusCode.CANCELLED
+2026-11-01 09:14:34,878 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_unavailable_retries_once_on_other_worker (test_worker_handoff.HandoffTests.test_unavailable_retries_once_on_other_worker) ... 2026-11-01 09:14:34,884 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:36993
+2026-11-01 09:14:34,885 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:33991
+2026-11-01 09:14:34,887 - system.grpc_worker_pool - WARNING - Worker dead RPC failed: StatusCode.UNAVAILABLE
+2026-11-01 09:14:34,887 - system.grpc_worker_pool - INFO - Retrying task 5f0b83eb-83d9-42d5-881f-04c33f2e0273 from dead to live (retry=1)
+2026-11-01 09:14:34,889 - system.grpc_worker_pool - INFO - Completed retried task 5f0b83eb-83d9-42d5-881f-04c33f2e0273 on live
+2026-11-01 09:14:34,897 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_unrelated_rpc_cancellation_does_not_retry (test_worker_handoff.HandoffTests.test_unrelated_rpc_cancellation_does_not_retry) ... 2026-11-01 09:14:34,904 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:44459
+2026-11-01 09:14:34,904 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:45877
+2026-11-01 09:14:34,906 - system.grpc_worker_pool - WARNING - Worker dead RPC failed: StatusCode.CANCELLED
+2026-11-01 09:14:34,916 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_draining_changes_state_without_clearing_active_load (test_worker_metrics.WorkerMetricsTests.test_draining_changes_state_without_clearing_active_load) ... 2026-11-01 09:14:34,923 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:45913
+2026-11-01 09:14:34,923 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:41873
+2026-11-01 09:14:34,937 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_metrics_are_exported_and_pool_shutdown_removes_labels (test_worker_metrics.WorkerMetricsTests.test_metrics_are_exported_and_pool_shutdown_removes_labels) ... 2026-11-01 09:14:34,944 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:35267
+2026-11-01 09:14:34,945 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:43425
+2026-11-01 09:14:34,948 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+2026-11-01 09:14:34,950 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_queue_excludes_active_rpc_and_returns_to_zero (test_worker_metrics.WorkerMetricsTests.test_queue_excludes_active_rpc_and_returns_to_zero) ... 2026-11-01 09:14:34,958 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:42559
+2026-11-01 09:14:34,958 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:37909
+2026-11-01 09:14:34,971 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_removed_worker_series_disappear_and_rejoin_starts_empty (test_worker_metrics.WorkerMetricsTests.test_removed_worker_series_disappear_and_rejoin_starts_empty) ... 2026-11-01 09:14:34,977 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:44361
+2026-11-01 09:14:34,977 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:36923
+2026-11-01 09:14:34,977 - system.grpc_worker_pool - INFO - Worker dead removed
+2026-11-01 09:14:34,977 - system.grpc_worker_pool - INFO - Worker live removed
+2026-11-01 09:14:34,978 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:36923
+2026-11-01 09:14:34,979 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_rpc_error_resets_active_gauge (test_worker_metrics.WorkerMetricsTests.test_rpc_error_resets_active_gauge) ... 2026-11-01 09:14:34,985 - system.grpc_worker_pool - INFO - Connected to dead at 127.0.0.1:35761
+2026-11-01 09:14:34,985 - system.grpc_worker_pool - INFO - Connected to live at 127.0.0.1:42035
+2026-11-01 09:14:34,986 - system.grpc_worker_pool - WARNING - Worker live RPC failed: StatusCode.INTERNAL
+2026-11-01 09:14:34,997 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_blocked_publication_does_not_block_server_shutdown (test_worker_shutdown.WorkerShutdownTests.test_blocked_publication_does_not_block_server_shutdown) ... ok
+test_publication_exception_still_allows_shutdown (test_worker_shutdown.WorkerShutdownTests.test_publication_exception_still_allows_shutdown) ... ok
+test_sigterm_finishes_active_rpc_then_deregisters (test_worker_shutdown.WorkerShutdownTests.test_sigterm_finishes_active_rpc_then_deregisters) ... ok
+test_mixed_batch_routes_each_task_only_to_compatible_worker (test_worker_text.CapabilityRoutingTests.test_mixed_batch_routes_each_task_only_to_compatible_worker) ... 2026-11-01 09:14:39,358 - system.grpc_worker_pool - INFO - Connected to audio at 127.0.0.1:33905
+2026-11-01 09:14:39,359 - system.grpc_worker_pool - INFO - Connected to text at 127.0.0.1:36703
+2026-11-01 09:14:39,359 - system.grpc_worker_pool - INFO - GrpcWorkerPool started with 2 static workers
+2026-11-01 09:14:39,372 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+ok
+test_busy_worker_rejects_second_request_without_parallel_gpu_calls (test_worker_text.TextWorkerTests.test_busy_worker_rejects_second_request_without_parallel_gpu_calls) ... 2026-11-01 09:14:39,377 - system.worker_text - INFO - Text worker model=text_v1.2.3 operation=retrieve elapsed_seconds=0.002
+ok
+test_deadline_bounds_slow_http_without_returning_late_success (test_worker_text.TextWorkerTests.test_deadline_bounds_slow_http_without_returning_late_success) ... 2026-11-01 09:14:39,935 - system.worker_text - INFO - Text worker model=text_v1.2.3 operation=retrieve elapsed_seconds=0.054
+ok
+test_expired_or_cancelled_task_never_runs (test_worker_text.TextWorkerTests.test_expired_or_cancelled_task_never_runs) ... ok
+test_real_grpc_adapter_calls_versioned_http_and_preserves_result (test_worker_text.TextWorkerTests.test_real_grpc_adapter_calls_versioned_http_and_preserves_result) ... 2026-11-01 09:14:40,908 - system.worker_text - INFO - Text worker model=text_v1.2.3 operation=retrieve elapsed_seconds=0.011
+ok
+test_rerank_preserves_clap_order_and_current_version (test_worker_text.TextWorkerTests.test_rerank_preserves_clap_order_and_current_version) ... 2026-11-01 09:14:41,406 - system.worker_text - INFO - Text worker model=text_v1.2.3 operation=rerank elapsed_seconds=0.002
+ok
+test_service_downgrade_is_rejected (test_worker_text.TextWorkerTests.test_service_downgrade_is_rejected) ... 2026-11-01 09:14:41,913 - system.worker_text - INFO - Text worker model=text_v1.2.3 operation=retrieve elapsed_seconds=0.002
+ok
+test_upstream_errors_and_malformed_results_are_explicit (test_worker_text.TextWorkerTests.test_upstream_errors_and_malformed_results_are_explicit) ... 2026-11-01 09:14:42,419 - system.worker_text - INFO - Text worker model=text_v1.2.3 operation=retrieve elapsed_seconds=0.001
+2026-11-01 09:14:42,422 - system.worker_text - INFO - Text worker model=text_v1.2.3 operation=retrieve elapsed_seconds=0.002
+2026-11-01 09:14:42,423 - system.worker_text - INFO - Text worker model=text_v1.2.3 operation=retrieve elapsed_seconds=0.001
+2026-11-01 09:14:42,426 - system.worker_text - INFO - Text worker model=text_v1.2.3 operation=retrieve elapsed_seconds=0.002
+2026-11-01 09:14:42,428 - system.worker_text - INFO - Text worker model=text_v1.2.3 operation=retrieve elapsed_seconds=0.002
+ok
+test_wrong_version_and_arbitrary_operation_never_reach_http (test_worker_text.TextWorkerTests.test_wrong_version_and_arbitrary_operation_never_reach_http) ... ok
+test_actual_daemon_log_outside_output_is_ignored (test_worker_v73.V73WorkerTests.test_actual_daemon_log_outside_output_is_ignored) ... 2026-11-01 09:14:43,458 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=3ee17929-1b01-4611-8518-31ce3da0f6d1 name=final.vital bytes=16 seconds=0.000
+2026-11-01 09:14:43,459 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=3ee17929-1b01-4611-8518-31ce3da0f6d1 name=final.unified.json bytes=39 seconds=0.001
+2026-11-01 09:14:43,460 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=3ee17929-1b01-4611-8518-31ce3da0f6d1 name=final.wav bytes=10 seconds=0.001
+2026-11-01 09:14:43,460 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=3ee17929-1b01-4611-8518-31ce3da0f6d1 name=selected.wav bytes=13 seconds=0.001
+2026-11-01 09:14:43,460 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=3ee17929-1b01-4611-8518-31ce3da0f6d1 name=result.json bytes=879 seconds=0.001
+ok
+test_cancellation_during_download_never_starts_model (test_worker_v73.V73WorkerTests.test_cancellation_during_download_never_starts_model) ... ok
+test_cross_instance_execution_is_serialized (test_worker_v73.V73WorkerTests.test_cross_instance_execution_is_serialized) ... 2026-11-01 09:14:43,974 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=63b10072-bece-4301-9fb3-80edc1735fa9 name=final.vital bytes=16 seconds=0.000
+2026-11-01 09:14:43,974 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=63b10072-bece-4301-9fb3-80edc1735fa9 name=final.unified.json bytes=39 seconds=0.000
+2026-11-01 09:14:43,974 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=63b10072-bece-4301-9fb3-80edc1735fa9 name=final.wav bytes=10 seconds=0.000
+2026-11-01 09:14:43,974 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=63b10072-bece-4301-9fb3-80edc1735fa9 name=result.json bytes=879 seconds=0.000
+2026-11-01 09:14:43,974 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=63b10072-bece-4301-9fb3-80edc1735fa9 name=selected.wav bytes=13 seconds=0.000
+2026-11-01 09:14:44,336 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=8af5de00-5596-4df4-bbed-ae42e9fd95db name=final.unified.json bytes=39 seconds=0.000
+2026-11-01 09:14:44,336 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=8af5de00-5596-4df4-bbed-ae42e9fd95db name=final.vital bytes=16 seconds=0.001
+2026-11-01 09:14:44,337 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=8af5de00-5596-4df4-bbed-ae42e9fd95db name=result.json bytes=879 seconds=0.000
+2026-11-01 09:14:44,337 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=8af5de00-5596-4df4-bbed-ae42e9fd95db name=final.wav bytes=10 seconds=0.001
+2026-11-01 09:14:44,337 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=8af5de00-5596-4df4-bbed-ae42e9fd95db name=selected.wav bytes=13 seconds=0.001
+ok
+test_existing_unfinished_output_is_never_resubmitted (test_worker_v73.V73WorkerTests.test_existing_unfinished_output_is_never_resubmitted) ... ok
+test_expired_request_has_no_download_or_model_side_effect (test_worker_v73.V73WorkerTests.test_expired_request_has_no_download_or_model_side_effect) ... ok
+test_failed_upload_waits_for_siblings_and_retries_without_inference (test_worker_v73.V73WorkerTests.test_failed_upload_waits_for_siblings_and_retries_without_inference) ... 2026-11-01 09:14:44,661 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=75d18a96-8c28-4b4b-ba52-4382a0614e64 name=final.unified.json bytes=39 seconds=0.001
+2026-11-01 09:14:44,662 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=75d18a96-8c28-4b4b-ba52-4382a0614e64 name=selected.wav bytes=13 seconds=0.000
+2026-11-01 09:14:44,662 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=75d18a96-8c28-4b4b-ba52-4382a0614e64 name=result.json bytes=879 seconds=0.001
+2026-11-01 09:14:44,662 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=75d18a96-8c28-4b4b-ba52-4382a0614e64 name=final.vital bytes=16 seconds=0.003
+2026-11-01 09:14:44,667 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=75d18a96-8c28-4b4b-ba52-4382a0614e64 name=final.wav bytes=10 seconds=0.000
+2026-11-01 09:14:44,668 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=75d18a96-8c28-4b4b-ba52-4382a0614e64 name=final.vital bytes=16 seconds=0.001
+2026-11-01 09:14:44,668 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=75d18a96-8c28-4b4b-ba52-4382a0614e64 name=result.json bytes=879 seconds=0.000
+2026-11-01 09:14:44,668 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=75d18a96-8c28-4b4b-ba52-4382a0614e64 name=selected.wav bytes=13 seconds=0.000
+2026-11-01 09:14:44,668 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=75d18a96-8c28-4b4b-ba52-4382a0614e64 name=final.unified.json bytes=39 seconds=0.001
+ok
+test_lying_content_length_cannot_bypass_streaming_size_limit (test_worker_v73.V73WorkerTests.test_lying_content_length_cannot_bypass_streaming_size_limit) ... ok
+test_missing_artifact_prevents_success (test_worker_v73.V73WorkerTests.test_missing_artifact_prevents_success) ... ok
+test_no_usable_note_is_terminal_and_replayed (test_worker_v73.V73WorkerTests.test_no_usable_note_is_terminal_and_replayed) ... ok
+test_real_service_runs_without_zookeeper_and_maps_wire_errors (test_worker_v73.V73WorkerTests.test_real_service_runs_without_zookeeper_and_maps_wire_errors) ... ok
+test_rejects_untrusted_spec_before_download (test_worker_v73.V73WorkerTests.test_rejects_untrusted_spec_before_download) ... ok
+test_replay_new_attempt_uses_immutable_cached_result_without_execution (test_worker_v73.V73WorkerTests.test_replay_new_attempt_uses_immutable_cached_result_without_execution) ... 2026-11-01 09:14:45,866 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=11462aa7-1892-4ba4-9a98-356b4689de81 name=final.unified.json bytes=39 seconds=0.000
+2026-11-01 09:14:45,866 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=11462aa7-1892-4ba4-9a98-356b4689de81 name=selected.wav bytes=13 seconds=0.000
+2026-11-01 09:14:45,866 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=11462aa7-1892-4ba4-9a98-356b4689de81 name=result.json bytes=879 seconds=0.000
+2026-11-01 09:14:45,866 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=11462aa7-1892-4ba4-9a98-356b4689de81 name=final.wav bytes=10 seconds=0.001
+2026-11-01 09:14:45,866 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=11462aa7-1892-4ba4-9a98-356b4689de81 name=final.vital bytes=16 seconds=0.001
+ok
+test_report_hash_mismatch_prevents_any_upload (test_worker_v73.V73WorkerTests.test_report_hash_mismatch_prevents_any_upload) ... ok
+test_report_reference_must_be_fixed_result_json (test_worker_v73.V73WorkerTests.test_report_reference_must_be_fixed_result_json) ... ok
+test_restart_recovers_completed_report_without_rerunning_model (test_worker_v73.V73WorkerTests.test_restart_recovers_completed_report_without_rerunning_model) ... 2026-11-01 09:14:46,220 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=0fb8073d-0e84-40d6-a4c8-1e2dadc40b69 name=final.vital bytes=16 seconds=0.000
+2026-11-01 09:14:46,220 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=0fb8073d-0e84-40d6-a4c8-1e2dadc40b69 name=final.unified.json bytes=39 seconds=0.000
+2026-11-01 09:14:46,220 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=0fb8073d-0e84-40d6-a4c8-1e2dadc40b69 name=final.wav bytes=10 seconds=0.000
+2026-11-01 09:14:46,220 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=0fb8073d-0e84-40d6-a4c8-1e2dadc40b69 name=selected.wav bytes=13 seconds=0.000
+2026-11-01 09:14:46,221 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=0fb8073d-0e84-40d6-a4c8-1e2dadc40b69 name=result.json bytes=879 seconds=0.000
+2026-11-01 09:14:46,232 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=0fb8073d-0e84-40d6-a4c8-1e2dadc40b69 name=final.unified.json bytes=39 seconds=0.000
+2026-11-01 09:14:46,232 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=0fb8073d-0e84-40d6-a4c8-1e2dadc40b69 name=final.vital bytes=16 seconds=0.001
+2026-11-01 09:14:46,232 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=0fb8073d-0e84-40d6-a4c8-1e2dadc40b69 name=final.wav bytes=10 seconds=0.000
+2026-11-01 09:14:46,232 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=0fb8073d-0e84-40d6-a4c8-1e2dadc40b69 name=selected.wav bytes=13 seconds=0.000
+2026-11-01 09:14:46,232 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=0fb8073d-0e84-40d6-a4c8-1e2dadc40b69 name=result.json bytes=879 seconds=0.000
+ok
+test_restart_replays_uploaded_result (test_worker_v73.V73WorkerTests.test_restart_replays_uploaded_result) ... 2026-11-01 09:14:46,338 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=6f26ae39-9fe7-42e7-b746-728e4d13c803 name=final.vital bytes=16 seconds=0.000
+2026-11-01 09:14:46,338 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=6f26ae39-9fe7-42e7-b746-728e4d13c803 name=final.wav bytes=10 seconds=0.000
+2026-11-01 09:14:46,338 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=6f26ae39-9fe7-42e7-b746-728e4d13c803 name=final.unified.json bytes=39 seconds=0.000
+2026-11-01 09:14:46,339 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=6f26ae39-9fe7-42e7-b746-728e4d13c803 name=result.json bytes=879 seconds=0.000
+2026-11-01 09:14:46,339 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=6f26ae39-9fe7-42e7-b746-728e4d13c803 name=selected.wav bytes=13 seconds=0.000
+ok
+test_restart_with_unfinished_report_remains_retryable (test_worker_v73.V73WorkerTests.test_restart_with_unfinished_report_remains_retryable) ... 2026-11-01 09:14:46,454 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=9f0a3c1a-f5f2-4e88-af47-4a0a1ef47310 name=final.unified.json bytes=39 seconds=0.000
+2026-11-01 09:14:46,455 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=9f0a3c1a-f5f2-4e88-af47-4a0a1ef47310 name=final.wav bytes=10 seconds=0.000
+2026-11-01 09:14:46,455 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=9f0a3c1a-f5f2-4e88-af47-4a0a1ef47310 name=result.json bytes=879 seconds=0.001
+2026-11-01 09:14:46,455 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=9f0a3c1a-f5f2-4e88-af47-4a0a1ef47310 name=selected.wav bytes=13 seconds=0.000
+2026-11-01 09:14:46,456 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=9f0a3c1a-f5f2-4e88-af47-4a0a1ef47310 name=final.vital bytes=16 seconds=0.001
+ok
+test_result_uploads_overlap_with_bounded_concurrency_and_complete_before_success (test_worker_v73.V73WorkerTests.test_result_uploads_overlap_with_bounded_concurrency_and_complete_before_success) ... 2026-11-01 09:14:46,563 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=e144d271-590c-4e6a-b3cd-ca89b2b7b234 name=final.wav bytes=10 seconds=0.001
+2026-11-01 09:14:46,563 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=e144d271-590c-4e6a-b3cd-ca89b2b7b234 name=final.vital bytes=16 seconds=0.001
+2026-11-01 09:14:46,563 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=e144d271-590c-4e6a-b3cd-ca89b2b7b234 name=result.json bytes=879 seconds=0.001
+2026-11-01 09:14:46,564 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=e144d271-590c-4e6a-b3cd-ca89b2b7b234 name=selected.wav bytes=13 seconds=0.000
+2026-11-01 09:14:46,564 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=e144d271-590c-4e6a-b3cd-ca89b2b7b234 name=final.unified.json bytes=39 seconds=0.001
+ok
+test_rpc_backend_emits_typed_error (test_worker_v73.V73WorkerTests.test_rpc_backend_emits_typed_error) ... ok
+test_same_job_with_different_spec_is_conflict (test_worker_v73.V73WorkerTests.test_same_job_with_different_spec_is_conflict) ... 2026-11-01 09:14:46,798 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=c82ec701-4379-4cdf-9274-ee8b83ee60ad name=final.vital bytes=16 seconds=0.000
+2026-11-01 09:14:46,798 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=c82ec701-4379-4cdf-9274-ee8b83ee60ad name=final.wav bytes=10 seconds=0.000
+2026-11-01 09:14:46,798 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=c82ec701-4379-4cdf-9274-ee8b83ee60ad name=result.json bytes=879 seconds=0.000
+2026-11-01 09:14:46,798 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=c82ec701-4379-4cdf-9274-ee8b83ee60ad name=selected.wav bytes=13 seconds=0.000
+2026-11-01 09:14:46,798 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=c82ec701-4379-4cdf-9274-ee8b83ee60ad name=final.unified.json bytes=39 seconds=0.001
+ok
+test_same_size_input_with_wrong_hash_never_reaches_model (test_worker_v73.V73WorkerTests.test_same_size_input_with_wrong_hash_never_reaches_model) ... ok
+test_simulator_default_and_real_backend_selection (test_worker_v73.V73WorkerTests.test_simulator_default_and_real_backend_selection) ... 2026-11-01 09:14:47,029 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=abb81dee-7b31-4f28-91c4-f59f88b47b6a name=final.wav bytes=10 seconds=0.000
+2026-11-01 09:14:47,029 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=abb81dee-7b31-4f28-91c4-f59f88b47b6a name=result.json bytes=879 seconds=0.000
+2026-11-01 09:14:47,030 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=abb81dee-7b31-4f28-91c4-f59f88b47b6a name=final.unified.json bytes=39 seconds=0.001
+2026-11-01 09:14:47,030 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=abb81dee-7b31-4f28-91c4-f59f88b47b6a name=final.vital bytes=16 seconds=0.001
+2026-11-01 09:14:47,030 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=abb81dee-7b31-4f28-91c4-f59f88b47b6a name=selected.wav bytes=13 seconds=0.000
+ok
+test_symlink_artifact_prevents_any_upload (test_worker_v73.V73WorkerTests.test_symlink_artifact_prevents_any_upload) ... ok
+test_symlink_output_directory_is_rejected (test_worker_v73.V73WorkerTests.test_symlink_output_directory_is_rejected) ... ok
+test_timeout_preserves_running_execution_and_later_replays_result (test_worker_v73.V73WorkerTests.test_timeout_preserves_running_execution_and_later_replays_result) ... 2026-11-01 09:14:47,663 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=e7679e1a-38d5-45e5-ab35-abf3f9dce036 name=final.unified.json bytes=39 seconds=0.000
+2026-11-01 09:14:47,663 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=e7679e1a-38d5-45e5-ab35-abf3f9dce036 name=final.wav bytes=10 seconds=0.001
+2026-11-01 09:14:47,663 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=e7679e1a-38d5-45e5-ab35-abf3f9dce036 name=result.json bytes=879 seconds=0.001
+2026-11-01 09:14:47,663 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=e7679e1a-38d5-45e5-ab35-abf3f9dce036 name=final.vital bytes=16 seconds=0.001
+2026-11-01 09:14:47,664 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=e7679e1a-38d5-45e5-ab35-abf3f9dce036 name=selected.wav bytes=13 seconds=0.001
+ok
+test_upload_failure_retries_upload_without_rerunning_model (test_worker_v73.V73WorkerTests.test_upload_failure_retries_upload_without_rerunning_model) ... 2026-11-01 09:14:47,881 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=dd5160b8-d1ae-4db3-b2f8-96600dca0c53 name=final.unified.json bytes=39 seconds=0.000
+2026-11-01 09:14:47,881 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=dd5160b8-d1ae-4db3-b2f8-96600dca0c53 name=final.wav bytes=10 seconds=0.000
+2026-11-01 09:14:47,882 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=dd5160b8-d1ae-4db3-b2f8-96600dca0c53 name=selected.wav bytes=13 seconds=0.000
+2026-11-01 09:14:47,882 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=dd5160b8-d1ae-4db3-b2f8-96600dca0c53 name=result.json bytes=879 seconds=0.000
+2026-11-01 09:14:47,882 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=dd5160b8-d1ae-4db3-b2f8-96600dca0c53 name=final.vital bytes=16 seconds=0.002
+ok
+test_uploads_verified_required_artifacts_and_returns_unified_document (test_worker_v73.V73WorkerTests.test_uploads_verified_required_artifacts_and_returns_unified_document) ... 2026-11-01 09:14:47,991 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=54c9b2e7-be1b-4d93-945e-dba6b38e5c7f name=final.unified.json bytes=39 seconds=0.000
+2026-11-01 09:14:47,992 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=54c9b2e7-be1b-4d93-945e-dba6b38e5c7f name=selected.wav bytes=13 seconds=0.000
+2026-11-01 09:14:47,992 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=54c9b2e7-be1b-4d93-945e-dba6b38e5c7f name=final.vital bytes=16 seconds=0.001
+2026-11-01 09:14:47,992 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=54c9b2e7-be1b-4d93-945e-dba6b38e5c7f name=result.json bytes=879 seconds=0.001
+2026-11-01 09:14:47,993 - system.worker_v73 - INFO - V73_ARTIFACT_UPLOAD job=54c9b2e7-be1b-4d93-945e-dba6b38e5c7f name=final.wav bytes=10 seconds=0.001
+ok
+test_wrong_daemon_checkpoint_prevents_any_upload (test_worker_v73.V73WorkerTests.test_wrong_daemon_checkpoint_prevents_any_upload) ... ok
+test_wrong_input_hash_and_size_never_reach_model (test_worker_v73.V73WorkerTests.test_wrong_input_hash_and_size_never_reach_model) ... ok
+test_reads_json_state_and_legacy_address (test_zookeeper_registry.DiscoveryMetadataTests.test_reads_json_state_and_legacy_address) ... ok
+test_skips_node_removed_after_listing (test_zookeeper_registry.DiscoveryMetadataTests.test_skips_node_removed_after_listing) ... ok
+test_callback_does_not_do_network_work (test_zookeeper_registry.RegistrationTests.test_callback_does_not_do_network_work) ... 2026-11-01 09:14:48,308 - system.zookeeper_registry - INFO - Registered worker-7 at worker-7:50051
+2026-11-01 09:14:48,308 - system.zookeeper_registry - WARNING - ZooKeeper session lost; registration will be restored
+2026-11-01 09:14:48,309 - system.zookeeper_registry - INFO - Registered worker-7 at worker-7:50051
+ok
+test_deregister_prevents_recreation (test_zookeeper_registry.RegistrationTests.test_deregister_prevents_recreation) ... 2026-11-01 09:14:48,323 - system.zookeeper_registry - INFO - Registered worker-7 at worker-7:50051
+ok
+test_expired_session_recreates_registration (test_zookeeper_registry.RegistrationTests.test_expired_session_recreates_registration) ... 2026-11-01 09:14:48,390 - system.zookeeper_registry - INFO - Registered worker-7 at worker-7:50051
+2026-11-01 09:14:48,390 - system.zookeeper_registry - WARNING - ZooKeeper session lost; registration will be restored
+2026-11-01 09:14:48,390 - system.zookeeper_registry - INFO - Registered worker-7 at worker-7:50051
+ok
+test_foreign_session_node_is_not_overwritten_or_deleted (test_zookeeper_registry.RegistrationTests.test_foreign_session_node_is_not_overwritten_or_deleted) ... 2026-11-01 09:14:48,402 - system.zookeeper_registry - WARNING - Initial worker registration pending; will retry: Worker identity already owned: /inference/workers/worker-7
+ok
+test_initial_connection_loss_is_retried (test_zookeeper_registry.RegistrationTests.test_initial_connection_loss_is_retried) ... 2026-11-01 09:14:48,404 - system.zookeeper_registry - WARNING - Initial worker registration pending; will retry: 
+2026-11-01 09:14:48,404 - system.zookeeper_registry - INFO - Registered worker-7 at worker-7:50051
+ok
+test_short_disconnect_preserves_session_owner (test_zookeeper_registry.RegistrationTests.test_short_disconnect_preserves_session_owner) ... 2026-11-01 09:14:48,416 - system.zookeeper_registry - INFO - Registered worker-7 at worker-7:50051
+ok
+test_startup_waits_for_old_session_then_registers (test_zookeeper_registry.RegistrationTests.test_startup_waits_for_old_session_then_registers) ... 2026-11-01 09:14:48,417 - system.zookeeper_registry - WARNING - Initial worker registration pending; will retry: Worker identity already owned: /inference/workers/worker-7
+2026-11-01 09:14:48,417 - system.zookeeper_registry - INFO - Registered worker-7 at worker-7:50051
+ok
+test_transient_registration_failure_is_retried (test_zookeeper_registry.RegistrationTests.test_transient_registration_failure_is_retried) ... 2026-11-01 09:14:48,432 - system.zookeeper_registry - INFO - Registered worker-7 at worker-7:50051
+2026-11-01 09:14:48,432 - system.zookeeper_registry - WARNING - ZooKeeper session lost; registration will be restored
+2026-11-01 09:14:48,432 - system.zookeeper_registry - WARNING - Worker registration failed; will retry: 
+2026-11-01 09:14:48,453 - system.zookeeper_registry - INFO - Registered worker-7 at worker-7:50051
+ok
+test_sudo_preserves_only_explicit_nonsecret_compose_paths (test_compose_environment.ComposeEnvironmentTests.test_sudo_preserves_only_explicit_nonsecret_compose_paths) ... ok
+test_backend_then_gateway_then_actual_worker_handlers_drain (test_drain_sequence.DrainSequenceTests.test_backend_then_gateway_then_actual_worker_handlers_drain) ... ok
+test_failure_before_atomic_marker_publication_cleans_up_and_reopens (test_drain_sequence.DrainSequenceTests.test_failure_before_atomic_marker_publication_cleans_up_and_reopens) ... ok
+test_foreign_marker_never_reopens_backend (test_drain_sequence.DrainSequenceTests.test_foreign_marker_never_reopens_backend) ... ok
+test_interruption_after_publication_retains_ownership_for_cleanup (test_drain_sequence.DrainSequenceTests.test_interruption_after_publication_retains_ownership_for_cleanup) ... ok
+test_ci_database_guard_rejects_cloud_and_general_local_database (test_host_plan.HostPlanTests.test_ci_database_guard_rejects_cloud_and_general_local_database) ... ok
+test_legacy_adoption_cannot_be_mistaken_for_deploy_ready (test_host_plan.HostPlanTests.test_legacy_adoption_cannot_be_mistaken_for_deploy_ready) ... ok
+test_missing_running_service_or_public_binding_blocks_adoption (test_host_plan.HostPlanTests.test_missing_running_service_or_public_binding_blocks_adoption) ... ok
+test_busy_does_not_stop_any_service (test_platform_deployment.DeploymentTests.test_busy_does_not_stop_any_service) ... ok
+test_failed_rollback_keeps_admission_closed_and_transaction_for_operator (test_platform_deployment.DeploymentTests.test_failed_rollback_keeps_admission_closed_and_transaction_for_operator) ... ok
+test_health_failure_restores_both_images_and_backend_dependency_pins (test_platform_deployment.DeploymentTests.test_health_failure_restores_both_images_and_backend_dependency_pins) ... ok
+test_partial_metadata_failure_rolls_back_pins_and_release (test_platform_deployment.DeploymentTests.test_partial_metadata_failure_rolls_back_pins_and_release) ... ok
+test_ssh_command_cannot_run_a_shell_or_choose_arbitrary_revision (test_platform_deployment.DeploymentTests.test_ssh_command_cannot_run_a_shell_or_choose_arbitrary_revision) ... ok
+test_success_switches_both_services_and_pins_without_touching_backend_or_tunnel (test_platform_deployment.DeploymentTests.test_success_switches_both_services_and_pins_without_touching_backend_or_tunnel) ... ok
+test_wrong_digest_never_reaches_docker (test_platform_deployment.DeploymentTests.test_wrong_digest_never_reaches_docker) ... ok
+test_active_rpc_queue_or_unready_adapter_blocks_deployment (test_platform_deployment.SafetyBoundaryTests.test_active_rpc_queue_or_unready_adapter_blocks_deployment) ... ok
+test_missing_or_nonfinite_metrics_never_claim_idle (test_platform_deployment.SafetyBoundaryTests.test_missing_or_nonfinite_metrics_never_claim_idle) ... ok
+test_prometheus_label_order_does_not_change_idle_detection (test_platform_deployment.SafetyBoundaryTests.test_prometheus_label_order_does_not_change_idle_detection) ... ok
+test_public_port_extra_service_or_network_replacement_is_rejected (test_platform_deployment.SafetyBoundaryTests.test_public_port_extra_service_or_network_replacement_is_rejected) ... ok
+test_old_product_is_rejected_before_fetch_load_or_stop (test_platform_deployment.StrictCutoverTests.test_old_product_is_rejected_before_fetch_load_or_stop) ... ok
+test_v123_product_passes_compatibility_gate (test_platform_deployment.StrictCutoverTests.test_v123_product_passes_compatibility_gate) ... ok
+test_skipped_disabled_failed_or_cancelled_release_cannot_pass (test_release_status.ReleaseStatusTests.test_skipped_disabled_failed_or_cancelled_release_cannot_pass) ... ok
+test_success_requires_verified_deployment_and_upstream_success (test_release_status.ReleaseStatusTests.test_success_requires_verified_deployment_and_upstream_success) ... ok
+test_backend_environment_change_blocks_platform_release (test_staging_environment.EnvironmentTests.test_backend_environment_change_blocks_platform_release) ... ok
+test_cross_environment_config_is_rejected_before_import_or_docker (test_staging_environment.EnvironmentTests.test_cross_environment_config_is_rejected_before_import_or_docker) ... ok
+test_dispatch_only_selects_fixed_environment_commands (test_staging_environment.EnvironmentTests.test_dispatch_only_selects_fixed_environment_commands) ... ok
+test_environment_hash_reads_root_file_via_digest_only (test_staging_environment.EnvironmentTests.test_environment_hash_reads_root_file_via_digest_only) ... ok
+test_missing_environment_preserves_legacy_dev_and_rejects_unknown (test_staging_environment.EnvironmentTests.test_missing_environment_preserves_legacy_dev_and_rejects_unknown) ... ok
+test_record_updates_only_staging_dependency_pins (test_staging_environment.EnvironmentTests.test_record_updates_only_staging_dependency_pins) ... ok
+test_staging_accepts_only_control_and_gateway_ca_mounts (test_staging_environment.EnvironmentTests.test_staging_accepts_only_control_and_gateway_ca_mounts) ... ok
+test_staging_cannot_attach_dev_network_ports_or_unbounded_resources (test_staging_environment.EnvironmentTests.test_staging_cannot_attach_dev_network_ports_or_unbounded_resources) ... ok
+test_staging_compose_uses_selected_paths_and_project (test_staging_environment.EnvironmentTests.test_staging_compose_uses_selected_paths_and_project) ... ok
+test_credential_rejection_prevents_docker_fetch_load_and_start (test_staging_environment.PlatformCredentialPreflightTests.test_credential_rejection_prevents_docker_fetch_load_and_start) ... ok
+test_environment_mutation_after_validation_prevents_start (test_staging_environment.PlatformCredentialPreflightTests.test_environment_mutation_after_validation_prevents_start) ... ok
+test_foreign_source_marker_image_or_nonpassing_report_never_passes (test_staging_environment.PlatformCredentialPreflightTests.test_foreign_source_marker_image_or_nonpassing_report_never_passes) ... ok
+test_validates_protected_subset_from_recorded_backend_source_without_plaintext_output (test_staging_environment.PlatformCredentialPreflightTests.test_validates_protected_subset_from_recorded_backend_source_without_plaintext_output) ... ok
+test_adoption_records_staging_rollback_source_and_rejects_dev_attachment (test_staging_environment.StagingAdoptionTests.test_adoption_records_staging_rollback_source_and_rejects_dev_attachment) ... ok
+
+----------------------------------------------------------------------
+Ran 206 tests in 22.318s
+
+OK

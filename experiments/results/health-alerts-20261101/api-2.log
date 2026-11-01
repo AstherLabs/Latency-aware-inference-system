@@ -1,0 +1,7 @@
+2026-11-01 09:06:08,593 - system.grpc_worker_pool - INFO - Connected to fixture at 127.0.0.1:44525
+2026-11-01 09:06:08,594 - system.grpc_worker_pool - INFO - GrpcWorkerPool started with 1 static workers
+2026-11-01 09:06:08,594 - system.scheduler - INFO - Scheduler started
+2026-11-01 09:06:08,595 - system.api_server - INFO - System started — host=0.0.0.0 port=8000
+2026-11-01 09:07:16,849 - system.scheduler - INFO - Scheduler stopped
+2026-11-01 09:07:16,850 - system.grpc_worker_pool - INFO - GrpcWorkerPool stopped
+2026-11-01 09:07:16,850 - system.api_server - INFO - System shutdown complete
