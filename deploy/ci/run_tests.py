@@ -3,7 +3,7 @@
 from pathlib import Path
 import os
 import sys
-import unittest
+import pytest
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -24,17 +24,31 @@ def initialize_database(url):
             connection.execute((Path(__file__).with_name('schema.sql')).read_text())
 
 
+class RequiredCoverage:
+    def __init__(self):
+        self.skipped = []
+
+    def pytest_runtest_logreport(self, report):
+        if report.skipped or hasattr(report, 'wasxfail'):
+            self.skipped.append(report.nodeid)
+
+    def pytest_collectreport(self, report):
+        if report.skipped:
+            self.skipped.append(report.nodeid)
+
+    def pytest_sessionfinish(self, session, exitstatus):
+        if self.skipped:
+            print('Required CI checks were skipped:', self.skipped, file=sys.stderr)
+            session.exitstatus = 1
+
+
 def main():
     url = validate_test_database(os.environ.get('SYNTHX_TEST_DATABASE_URL',''))
     initialize_database(url)
     os.chdir(ROOT)
     sys.path[:0] = [str(ROOT),str(ROOT/'tests')]
-    suite = unittest.TestSuite()
-    loader = unittest.TestLoader()
-    suite.addTests(loader.discover(str(ROOT/'tests')))
-    suite.addTests(loader.discover(str(ROOT/'deploy/ci/tests'),top_level_dir=str(ROOT/'deploy/ci/tests')))
-    result = unittest.TextTestRunner(verbosity=2).run(suite)
-    if result.skipped: print('Required CI checks were skipped:',result.skipped,file=sys.stderr)
-    return 0 if result.wasSuccessful() and not result.skipped else 1
+    # Execute unittest classes AND pytest functions/fixtures, including audio recovery.
+    return int(pytest.main([str(ROOT/'tests'), str(ROOT/'deploy/ci/tests'),
+                            '-q', '-p', 'no:cacheprovider'], plugins=[RequiredCoverage()]))
 
 if __name__ == '__main__': raise SystemExit(main())

@@ -136,7 +136,7 @@ class GrpcWorker:
         if task.is_expired():
             task.mark_failed("request deadline exceeded", "deadline_exceeded")
             return
-        if isinstance(task.input_data, dict) and task.input_data.get("kind") in ("synthx_v73", "synthx_text_v123", "synthx_text_refinement"):
+        if isinstance(task.input_data, dict) and task.input_data.get("kind") in ("synthx_v73", "synthx_text_v123", "synthx_text_refinement", "synthx_audio"):
             task.mark_failed(error, "transport_error")
             return
         if retry_allowed:
@@ -203,6 +203,14 @@ class GrpcWorker:
 
         for task in batch:
             task.mark_processing()
+
+        audio = [task for task in batch if isinstance(task.input_data, dict)
+                 and task.input_data.get('kind') == 'synthx_audio']
+        if audio:
+            self._process_audio(audio)
+            batch = [task for task in batch if task not in audio]
+            if not batch:
+                return
 
         task_map = {task.task_id: task for task in batch}
         requests = []
@@ -288,6 +296,35 @@ class GrpcWorker:
                     self._stop.is_set() and self._retry_on_stop
                     and isinstance(exc, ValueError),
                 )
+    def _process_audio(self, batch: Batch) -> None:
+        """Keep GPU work on the scheduler's serial worker while streaming bytes."""
+        from .audio_protocol import AudioWorkerError, execute_remote
+        for task in batch:
+            if task.is_expired():
+                task.mark_failed('request deadline exceeded', 'deadline_exceeded')
+                continue
+            if self._stop.is_set():
+                self._finish_or_retry(task, 'worker removed', False)
+                continue
+            remaining = task.remaining_seconds()
+            try:
+                self._active_rpcs_metric.set(1)
+                result = execute_remote(self._channel, task.input_data,
+                                        timeout=remaining if remaining is not None else 1700)
+                task.mark_done(result)
+            except AudioWorkerError as exc:
+                task.mark_failed(str(exc), exc.code)
+            except grpc.RpcError as exc:
+                code = 'deadline_exceeded' if task.is_expired() else 'transport_error'
+                task.mark_failed('audio worker connection interrupted: ' + exc.code().name, code)
+            except (OSError, ValueError) as exc:
+                task.mark_failed('audio request input is unavailable', 'invalid_input')
+            except Exception:
+                logger.exception('Audio worker RPC failed')
+                task.mark_failed('audio worker request failed', 'worker_error')
+            finally:
+                self._active_rpcs_metric.set(0)
+
     def set_routing_state(self, state: str) -> None:
         """Update admission state without cancelling accepted work."""
         with self._lock:
@@ -342,7 +379,7 @@ class GrpcWorkerPool:
                 capabilities = json.loads(raw_capabilities)
                 if not isinstance(capabilities, dict) or any(
                     not isinstance(wid, str) or not wid or not isinstance(kinds, list) or not kinds
-                    or any(kind not in ("simulation", "synthx_v73", "synthx_text_v123", "synthx_text_refinement") for kind in kinds)
+                    or any(kind not in ("simulation", "synthx_v73", "synthx_text_v123", "synthx_text_refinement", "synthx_audio") for kind in kinds)
                     for wid, kinds in capabilities.items()
                 ):
                     raise ValueError("invalid worker capabilities")

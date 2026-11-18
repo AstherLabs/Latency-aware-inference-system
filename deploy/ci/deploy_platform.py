@@ -23,6 +23,14 @@ import uuid
 STATE_BASE = Path('/home/ubuntu/services/.synthx')
 SERVICES = ('gateway', 'text-worker')
 MAX_ARCHIVE = 2 * 1024**3
+AUDIO_SOURCE = '/home/ubuntu/services/.synthx/staging-platform-cicd/audio-jobs'
+AUDIO_TARGET = '/var/lib/synthx-audio'
+AUDIO_ENVIRONMENT = {
+    'SYNTHX_AUDIO_ENABLED': '1', 'SYNTHX_AUDIO_ROOT': AUDIO_TARGET,
+    'SYNTHX_AUDIO_WORKER_ADDRESS': 'model-tunnel:50061',
+    'STATIC_WORKERS': '{"73":"model-tunnel:50061","122":"text-worker:50062"}',
+    'WORKER_CAPABILITIES': '{"73":["synthx_audio"],"122":["synthx_text_v123","synthx_text_refinement"]}',
+}
 
 
 class DeployError(RuntimeError):
@@ -144,7 +152,28 @@ def validate_layout(layout, control_dir=None, environment='dev'):
         raise DeployError('Text adapter must not publish a host port')
     if target.name == 'staging' and layout.get('name') != target.project:
         raise DeployError('Staging Compose project identity changed')
+    gateway_env = services['gateway'].get('environment', {})
+    audio_enabled = gateway_env.get('SYNTHX_AUDIO_ENABLED') == '1'
     for name, service in services.items():
+        env = service.get('environment', {})
+        audio_keys = {key for key in env if key.startswith('SYNTHX_AUDIO_')}
+        if audio_keys:
+            if name != 'gateway' or target.name != 'staging' or not audio_enabled:
+                raise DeployError('Audio configuration requires explicit staging gateway opt-in')
+            if audio_keys != {'SYNTHX_AUDIO_ENABLED', 'SYNTHX_AUDIO_ROOT', 'SYNTHX_AUDIO_WORKER_ADDRESS'}:
+                raise DeployError('Unexpected audio deployment configuration')
+        if audio_enabled and name == 'gateway':
+            for key, expected in AUDIO_ENVIRONMENT.items():
+                actual = env.get(key)
+                if key in {'STATIC_WORKERS', 'WORKER_CAPABILITIES'}:
+                    try:
+                        valid = json.loads(actual) == json.loads(expected)
+                    except (TypeError, ValueError):
+                        valid = False
+                else:
+                    valid = actual == expected
+                if not valid:
+                    raise DeployError('Audio gateway identity, persistence or worker capabilities changed')
         if target.name == 'staging':
             if name == 'gateway':
                 env = service.get('environment', {})
@@ -162,12 +191,16 @@ def validate_layout(layout, control_dir=None, environment='dev'):
                 raise DeployError('Staging requires dropped capabilities and no privilege escalation')
         mounts = service.get('volumes', [])
         if control_dir is not None:
-            expected_mounts = {(str(control_dir), '/run/synthx-deploy')}
+            expected_mounts = {(str(control_dir), '/run/synthx-deploy'): True}
             if target.name == 'staging' and name == 'gateway':
-                expected_mounts.add(('/opt/synthx-staging/deploy/certs/supabase-prod-ca-2021.crt',
-                                     '/etc/synthx-staging/supabase-prod-ca-2021.crt'))
-            if len(mounts) != len(expected_mounts) or {(m.get('source'), m.get('target')) for m in mounts} != expected_mounts or any(m.get('type') != 'bind' or m.get('read_only') is not True for m in mounts):
-                raise DeployError('Only approved read-only maintenance and staging gateway CA mounts are allowed')
+                expected_mounts[('/opt/synthx-staging/deploy/certs/supabase-prod-ca-2021.crt',
+                                 '/etc/synthx-staging/supabase-prod-ca-2021.crt')] = True
+                if audio_enabled:
+                    expected_mounts[(AUDIO_SOURCE, AUDIO_TARGET)] = False
+            if (len(mounts) != len(expected_mounts)
+                    or {(m.get('source'), m.get('target')) for m in mounts} != set(expected_mounts)
+                    or any(m.get('type') != 'bind' or m.get('read_only', False) is not expected_mounts.get((m.get('source'), m.get('target'))) for m in mounts)):
+                raise DeployError('Only approved maintenance, CA and opt-in audio persistence mounts are allowed')
         elif mounts:
             raise DeployError('Unexpected deployment mounts')
         if set(service.get('networks', {})) != {'default'} or service.get('build') or service.get('privileged') or service.get('network_mode'):
@@ -184,6 +217,9 @@ class Deployment:
         image = r.load(archive, sha)
         images = dict.fromkeys(SERVICES, image)
         previous = r.previous()
+        if release.get('audio_gateway_only') is True:
+            r.configure_audio_rollout(previous)
+            images['text-worker'] = previous['images']['text-worker']
         if r.busy(): raise DeployError('Active jobs; retry platform deployment later', 75)
         resume_safe = True
         transaction = False
@@ -276,12 +312,81 @@ class Runtime:
     def compose(self, release, *args):
         source = Path(release['compose'])
         overrides = ['-f', str(source.with_name('compose.platform.staging.yml'))] if self.target.name == 'staging' else []
+        enabled = release.get('audio_enabled', False)
+        gateway_only = release.get('audio_gateway_only', False)
+        if (type(enabled) is not bool or type(gateway_only) is not bool
+                or ((enabled or gateway_only) and self.target.name != 'staging')
+                or (gateway_only and not enabled)):
+            raise DeployError('Audio deployment is an explicit staging-only boolean opt-in')
+        if enabled:
+            # Derive the complete reviewed overlay rather than accepting host paths.
+            overlay = source.with_name('audio.json')
+            atomic_json(overlay, {'services': {'gateway': {
+                'environment': AUDIO_ENVIRONMENT,
+                'volumes': [{'type': 'bind', 'source': AUDIO_SOURCE, 'target': AUDIO_TARGET, 'read_only': False}],
+            }}})
+            overrides.extend(['-f', str(overlay)])
         return self.docker('compose', '-p', self.target.project, '--project-directory', str(source.parent),
             '--env-file', '/dev/null' if self.target.name == 'staging' else str(self.env_file), '-f', str(source),
             *overrides, '-f', str(source.with_name('images.json')), *args,
             env={**os.environ, 'SYNTHX_ENV_FILE': str(self.env_file), 'PLATFORM_CONTROL_DIR': str(self.root / 'control'),
                  'PLATFORM_MODEL_HOST': self.target.model_host, 'PLATFORM_GATEWAY_PORT': str(self.target.gateway_port),
                  'PLATFORM_NETWORK': self.target.network})
+
+    def audio_rollout_settings(self):
+        enabled = self.config.get('audio_enabled', False)
+        gateway_only = self.config.get('audio_gateway_only', False)
+        if (type(enabled) is not bool or type(gateway_only) is not bool
+                or ((enabled or gateway_only) and self.target.name != 'staging')
+                or (gateway_only and not enabled)):
+            raise DeployError('Audio gateway-only rollout requires staging and boolean audio opt-in')
+        return enabled, gateway_only
+
+    def audio_container_snapshot(self, name, include_process=False):
+        value = json.loads(self.inspect(name, '{{json .}}'))
+        if value.get('State', {}).get('Running') is not True:
+            raise DeployError('Protected audio rollout container is not running')
+        config = copy.deepcopy(value.get('Config', {}))
+        # These identify the newly created container or Compose invocation, not its runtime contract.
+        config.pop('Hostname', None)
+        config.pop('Image', None)
+        if 'Labels' in config:
+            config['Labels'] = {k: v for k, v in (config['Labels'] or {}).items()
+                                if not k.startswith('com.docker.compose.')}
+        layout = {'config': config, 'host': value.get('HostConfig', {}),
+                  'networks': sorted(value.get('NetworkSettings', {}).get('Networks', {})),
+                  'mounts': sorted(value.get('Mounts', []), key=lambda m: m.get('Destination', ''))}
+        snapshot = {'image': value['Image'], 'layout_sha256': hashlib.sha256(
+            json.dumps(layout, sort_keys=True, separators=(',', ':')).encode()).hexdigest()}
+        if include_process:
+            snapshot.update(container_id=value['Id'], pid=value['State']['Pid'], started_at=value['State']['StartedAt'])
+        return snapshot
+
+    def gateway_readiness(self):
+        with urllib.request.urlopen(f'http://127.0.0.1:{self.target.gateway_port}/readyz', timeout=5) as response:
+            value = json.load(response)
+        if value.get('status') != 'ready':
+            raise DeployError('Gateway is not ready')
+        return value
+
+    def configure_audio_rollout(self, previous):
+        if self.target.name != 'staging':
+            raise DeployError('Audio gateway-only rollout is staging-only')
+        self._audio_text_baseline = self.audio_container_snapshot(self.target.containers['text-worker'], include_process=True)
+        if self._audio_text_baseline['image'] != previous['images']['text-worker']:
+            raise DeployError('Unchanged text worker differs from its recorded image')
+        self._audio_previous_layout = self.audio_container_snapshot(self.target.containers['gateway'])
+        if self._audio_previous_layout['image'] != previous['images']['gateway']:
+            raise DeployError('Previous gateway differs from its recorded image')
+        self._audio_previous_readiness = self.gateway_readiness()
+        self._audio_previous = copy.deepcopy(previous)
+        self._audio_rollback = False
+        self.protected[self.target.containers['text-worker']] = previous['images']['text-worker']
+
+    def assert_audio_text_unchanged(self):
+        current = self.audio_container_snapshot(self.target.containers['text-worker'], include_process=True)
+        if current != self._audio_text_baseline:
+            raise DeployError('Unchanged text worker image, configuration or process changed')
 
     def assert_platform_environment(self):
         if self.target.name != 'staging':
@@ -320,6 +425,7 @@ class Runtime:
     def prepare(self, sha):
         self.assert_platform_environment()
         self.assert_product_compatible()
+        enabled, gateway_only = self.audio_rollout_settings()
         self.command(['git', '-C', str(self.repo), 'fetch', '--no-tags', 'origin', 'main'])
         if self.command(['git', '-C', str(self.repo), 'rev-parse', 'origin/main']) != sha:
             raise DeployError('Deployment SHA is not latest origin/main')
@@ -339,6 +445,10 @@ class Runtime:
         if (source / '.platform-revision').read_text().strip() != sha:
             raise DeployError('Incomplete release source export')
         result = {'sha': sha, 'compose': str(source / 'deploy/ci/compose.platform.yml')}
+        if enabled:
+            result['audio_enabled'] = True
+        if gateway_only:
+            result['audio_gateway_only'] = True
         atomic_json(Path(result['compose']).with_name('images.json'), {'services': {s: {'image': 'synthx-platform:' + sha} for s in SERVICES}})
         validate_layout(json.loads(self.compose(result, 'config', '--format', 'json')), self.root / 'control', self.target.name)
         return result
@@ -371,6 +481,8 @@ class Runtime:
         for container, image in self.protected.items():
             if self.inspect(container, '{{.Image}}') != image or self.inspect(container, '{{.State.Running}}') != 'true':
                 raise DeployError('Protected dependency changed or stopped: ' + container)
+        if getattr(self, '_audio_previous', None):
+            self.assert_audio_text_unchanged()
 
     def busy(self): return self.backend_call('busy')
     def begin_drain(self):
@@ -420,9 +532,33 @@ class Runtime:
     def platform_status(self):
         return self.acknowledged(self.gateway_status()) and self.acknowledged(self.worker_status())
 
+    def audio_remote_quiet(self):
+        """A terminal gateway deadline does not prove remote GPU ownership ended."""
+        try:
+            environment = dict(item.split('=', 1) for item in json.loads(
+                self.inspect(self.target.containers['gateway'], '{{json .Config.Env}}')))
+            enabled = environment.get('SYNTHX_AUDIO_ENABLED', '0')
+            if enabled == '0':
+                return True  # The currently running legacy/rollback profile has no audio bridge.
+            if enabled != '1':
+                return False
+            program = """import json,os,urllib.request
+r=urllib.request.Request('http://127.0.0.1:8000/audio/health',headers={'Authorization':'Bearer '+os.environ['INFERENCE_SERVICE_TOKEN']})
+h=json.load(urllib.request.urlopen(r,timeout=15))
+w=h.get('worker',{})
+assert h.get('ready') is True and w.get('ready') is True
+assert type(w.get('inflight')) is int and w['inflight']==0
+assert isinstance(w.get('quarantined'),list) and not w['quarantined']
+print('audio-remote-idle')
+"""
+            return self.docker('exec', self.target.containers['gateway'], 'python', '-c', program) == 'audio-remote-idle'
+        except (DeployError, OSError, ValueError, TypeError, subprocess.TimeoutExpired):
+            return False
+
     def gateway_quiet(self):
         with urllib.request.urlopen(f'http://127.0.0.1:{self.target.gateway_port}/metrics', timeout=5) as response:
-            return metrics_idle(response.read(2 * 1024**2).decode())
+            locally_idle = metrics_idle(response.read(2 * 1024**2).decode())
+        return locally_idle and self.audio_remote_quiet()
 
     def wait_idle(self):
         # Preserve dependencies for already accepted work: backend -> gateway -> adapter.
@@ -443,23 +579,45 @@ class Runtime:
             if time.monotonic() >= deadline: raise DeployError('Platform did not become idle; old services remain running', 75)
             time.sleep(2)
 
+    def audio_rollout_receipt(self):
+        if not getattr(self, '_audio_previous', None):
+            return {}
+        self.assert_audio_text_unchanged()
+        return {'audio_gateway_only': True,
+                'text_model_health': 'preexisting_unavailable_not_changed',
+                'protected_text_worker': self._audio_text_baseline,
+                'previous_gateway_readiness': self._audio_previous_readiness,
+                'previous_gateway_layout': self._audio_previous_layout}
+
     def begin_transaction(self, previous):
         atomic_json(self.root / 'transaction.json', {'previous': previous, 'backend_config': self.shared,
-            'phase': 'before-maintenance', 'started_at': time.time()})
+            **self.audio_rollout_receipt(), 'phase': 'before-maintenance', 'started_at': time.time()})
 
     def stop(self):
-        for service in SERVICES:
+        if getattr(self, '_audio_previous', None):
+            self.assert_audio_text_unchanged()
+        for service in (('gateway',) if getattr(self, '_audio_previous', None) else SERVICES):
             found = self.docker('container', 'ls', '--all', '--filter', 'name=^/' + self.target.containers[service] + '$', '--format', '{{.ID}}')
             if found: self.docker('stop', '--time', '120', found)
 
     def start(self, release, images):
         self.assert_platform_environment()
         self.assert_protected()
+        if getattr(self, '_audio_previous', None):
+            self.assert_audio_text_unchanged()
+            if images['text-worker'] != self._audio_previous['images']['text-worker']:
+                raise DeployError('Gateway-only rollout cannot change the text worker image')
+            self._audio_rollback = release['compose'] == self._audio_previous['compose']
         atomic_json(Path(release['compose']).with_name('images.json'), {'services': {s: {'image': images[s]} for s in SERVICES}})
         validate_layout(json.loads(self.compose(release, 'config', '--format', 'json')), self.root / 'control', self.target.name)
-        self.compose(release, 'up', '-d', '--no-deps', '--no-build', 'text-worker', 'gateway')
+        services = ('gateway',) if getattr(self, '_audio_previous', None) else ('text-worker', 'gateway')
+        self.compose(release, 'up', '-d', '--no-deps', '--no-build', *services)
+        if getattr(self, '_audio_previous', None):
+            self.assert_audio_text_unchanged()
 
     def healthy(self, images):
+        if getattr(self, '_audio_previous', None):
+            return self.audio_gateway_healthy(images)
         deadline = time.monotonic() + 90
         # Probe the running release, including an older image restored on failure.
         # This is rollback verification, never API compatibility or model fallback.
@@ -501,11 +659,56 @@ print('transport-ready')
             except (DeployError, OSError, ValueError, subprocess.TimeoutExpired): time.sleep(2)
         return False
 
+    def audio_gateway_healthy(self, images):
+        deadline = time.monotonic() + 90
+        # No generation and no token output: execute authenticated health inside the gateway.
+        program = """import grpc,json,os,urllib.request
+c=grpc.insecure_channel('text-worker:50062')
+try: grpc.channel_ready_future(c).result(timeout=10)
+finally: c.close()
+r=urllib.request.Request('http://127.0.0.1:8000/audio/health',headers={'Authorization':'Bearer '+os.environ['INFERENCE_SERVICE_TOKEN']})
+h=json.load(urllib.request.urlopen(r,timeout=15))
+expected={'vital_v7_3':'3059361d046c2c04fd40ae3d29c97e1c7d56e167f93b4b945d96aee1d4e196de','vital_v7_5':'dd9efb895f2903941ead3e5e8761f0c37f07a522e742ef04819d75e059586aa3','vital_v7_5_chord':'dd9efb895f2903941ead3e5e8761f0c37f07a522e742ef04819d75e059586aa3'}
+w=h.get('worker',{})
+assert h.get('ready') is True and w.get('ready') is True
+assert set(w.get('models',[]))==set(expected) and w.get('checkpoints')==expected
+print('audio-transport-ready')
+"""
+        rollback_program = """import grpc
+c=grpc.insecure_channel('text-worker:50062')
+try: grpc.channel_ready_future(c).result(timeout=10)
+finally: c.close()
+print('text-adapter-unchanged')
+"""
+        while time.monotonic() < deadline:
+            try:
+                self.assert_protected()
+                self.assert_audio_text_unchanged()
+                if not self.platform_status():
+                    raise DeployError('Platform handlers are still active')
+                if self.inspect(self.target.containers['gateway'], '{{.Image}}') != images['gateway'] or self.inspect(self.target.containers['gateway'], '{{.State.Running}}') != 'true':
+                    raise DeployError('Gateway image/state mismatch')
+                ready = self.gateway_readiness()
+                if self._audio_rollback:
+                    if ready != self._audio_previous_readiness or self.audio_container_snapshot(self.target.containers['gateway']) != self._audio_previous_layout:
+                        raise DeployError('Previous gateway readiness or layout differs from its baseline')
+                    expected, probe = 'text-adapter-unchanged', rollback_program
+                else:
+                    expected, probe = 'audio-transport-ready', program
+                if self.docker('exec', self.target.containers['gateway'], 'python', '-c', probe) != expected:
+                    raise DeployError('Gateway-only transport validation failed')
+                self.assert_audio_text_unchanged()
+                return True
+            except (DeployError, OSError, ValueError, subprocess.TimeoutExpired):
+                time.sleep(2)
+        return False
+
     def record(self, release, images, previous):
         updated = copy.deepcopy(self.shared)
         updated['dependency_images'].update({self.target.containers[s]: images[s] for s in SERVICES})
         atomic_json(self.shared_path, updated)
-        atomic_json(self.root / 'current.json', {**release, 'images': images,
+        receipt = self.audio_rollout_receipt()
+        atomic_json(self.root / 'current.json', {**release, **receipt, 'images': images,
             'previous': {k: v for k, v in previous.items() if k != 'previous'}, 'deployed_at': time.time()})
 
     def restore(self, previous):

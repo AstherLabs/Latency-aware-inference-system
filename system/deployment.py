@@ -28,6 +28,11 @@ class DeploymentGate:
     def leave(self):
         with self._lock:self._active-=1
 
+    def enter_existing(self):
+        """Count already admitted durable work, including recovery during drain."""
+        with self._lock:
+            self._active += 1
+
     def snapshot(self):
         with self._lock:
             draining,token=self.marker_state()

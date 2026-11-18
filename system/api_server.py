@@ -49,6 +49,7 @@ from .worker import WorkerPool
 from system import task
 
 JOBS_ENABLED = os.environ.get("SYNTHX_JOBS_ENABLED", "0") == "1"
+AUDIO_ENABLED = os.environ.get('SYNTHX_AUDIO_ENABLED', '0') == '1'
 USE_GRPC = os.environ.get("USE_GRPC", "0") == "1" or JOBS_ENABLED
 if USE_GRPC:
     from .grpc_worker_pool import GrpcWorkerPool
@@ -68,14 +69,35 @@ _worker_pool = None
 _scheduler: Scheduler
 _job_gateway = None
 _jobs_token = None
+_audio_manager = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Start the queue, workers, and scheduler; stop them when the API shuts down."""
-    global _task_queue, _worker_pool, _scheduler, _job_gateway, _jobs_token
+    global _task_queue, _worker_pool, _scheduler, _job_gateway, _jobs_token, _audio_manager
 
     job_store = None
+    if JOBS_ENABLED or AUDIO_ENABLED:
+        _jobs_token = os.environ.get('INFERENCE_SERVICE_TOKEN')
+        if not _jobs_token:
+            raise RuntimeError('INFERENCE_SERVICE_TOKEN is required for model jobs')
+    audio_settings = None
+    if AUDIO_ENABLED:
+        from pathlib import Path
+        from .audio_protocol import KIND
+        address = os.environ.get('SYNTHX_AUDIO_WORKER_ADDRESS', '')
+        root = os.environ.get('SYNTHX_AUDIO_ROOT', '')
+        try:
+            workers = json.loads(os.environ.get('STATIC_WORKERS', '{}'))
+            capabilities = json.loads(os.environ.get('WORKER_CAPABILITIES', '{}'))
+            routed = any(target == address and KIND in capabilities.get(worker_id, [])
+                         for worker_id, target in workers.items())
+        except (ValueError, TypeError, AttributeError) as exc:
+            raise RuntimeError('Audio scheduler routes are invalid') from exc
+        if not USE_GRPC or not address or not root or not Path(root).is_absolute() or not routed:
+            raise RuntimeError('Audio requires an explicit persistent root and matching gRPC worker capability')
+        audio_settings = (root, address)
     if JOBS_ENABLED:
         from .job_gateway import JobGateway
         from .job_store import JobStore
@@ -99,6 +121,17 @@ async def lifespan(app: FastAPI):
 
     _scheduler = Scheduler(_task_queue, _worker_pool.submit)
     _scheduler.start()
+    if audio_settings:
+        from .audio_jobs import AudioJobManager
+        _audio_manager = AudioJobManager(audio_settings[0], _task_queue, audio_settings[1],
+                                         deployment_gate=_deployment_gate)
+        try:
+            _audio_manager.start()
+        except BaseException:
+            _audio_manager = None
+            _scheduler.stop()
+            _worker_pool.stop()
+            raise
     if job_gateway is not None:
         _job_gateway = job_gateway
         _job_gateway.start()
@@ -107,6 +140,9 @@ async def lifespan(app: FastAPI):
     try:
         yield
     finally:
+        if _audio_manager is not None:
+            _audio_manager.stop()
+            _audio_manager = None
         if _job_gateway is not None:
             _job_gateway.stop()
             _job_gateway = None
@@ -234,6 +270,16 @@ async def require_jobs_auth(request: Request):
     if not hmac.compare_digest(supplied.encode("utf-8"), expected.encode("utf-8")):
         raise HTTPException(status_code=401, detail="invalid service authorization",
                             headers={"WWW-Authenticate": "Bearer"})
+
+
+async def require_audio_auth(request: Request):
+    if _audio_manager is None or not _jobs_token:
+        raise HTTPException(status_code=503, detail='scheduled audio is not enabled')
+    supplied = request.headers.get('Authorization', '')
+    expected = 'Bearer ' + _jobs_token
+    if not hmac.compare_digest(supplied.encode('utf-8'), expected.encode('utf-8')):
+        raise HTTPException(status_code=401, detail='invalid service authorization',
+                            headers={'WWW-Authenticate': 'Bearer'})
 
 
 # ---------------------------------------------------------------------------
@@ -408,8 +454,17 @@ async def readiness():
         raise HTTPException(status_code=503, detail="gRPC worker pool not enabled")
     if not _worker_pool.has_workers():
         raise HTTPException(status_code=503, detail="no workers available")
-    else:
-        return {"status": "ready"}
+    if AUDIO_ENABLED:
+        if _audio_manager is None:
+            raise HTTPException(status_code=503, detail='audio scheduler is not initialized')
+        health = await asyncio.to_thread(_audio_manager.health)
+        if health.get('ready') is not True:
+            raise HTTPException(status_code=503, detail='configured audio models are unavailable')
+    return {"status": "ready"}
+
+
+from .audio_api import create_router as create_audio_router
+app.include_router(create_audio_router(lambda: _audio_manager, require_audio_auth))
 
 
 # ---------------------------------------------------------------------------

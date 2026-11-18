@@ -1,2 +1,3 @@
 -r requirements-production.txt
 httpx>=0.27,<1
+pytest>=9,<10
